@@ -3,6 +3,7 @@
 
 ## Overview
 We plan to develop a secure, multi-user game hub that combines Bash scripting for user authentication with Python (Pygame) for gameplay. In our system, two verified players will log in, choose a game from a menu, and interact through a graphical interface. We will also implement a persistent leaderboard to store and track player's results over time.
+<br>
 
 ## Key Features
 ### System Architecture & Authentication
@@ -41,6 +42,31 @@ Post-match data is heavily tracked for player insights:
 * **Visualizations:** The system utilizes Matplotlib to generate graphical insights, such as bar charts for top players and pie charts for game popularity.
 <br>
 
+## System Design
+* **Layer 1: Security (Bash)**
+    Acts as the entry point (`main.sh`) to authenticate two players. It uses **SHA-256** to hash and verify passwords against `users.tsv` before launching the Python engine via command-line arguments.
 
+* **Layer 2: Core Engine (Python/Pygame)**
+   The central `game.py` file manages the GUI menu and a **Base Class** for turn-based gameplay. It initializes the game board as a **NumPy array** and handles player turns.
+
+* **Layer 3: Game Modules (NumPy Logic)**
+   Individual games (Tic-Tac-Toe, Othello, Connect Four) inherit from the base class in the `games/` directory. Win conditions and move validations must be checked strictly using **NumPy array slicing** rather than manual loops.
+
+* **Layer 4: Persistence & Analytics**
+  After each match, `game.py` logs results to `history.csv`. It then calls `leaderboard.sh` to display sorted terminal stats and uses **Matplotlib** to render visual charts of player performance.
+<br>
+
+## Implementation Plan
+* **Phase 1: Bash Infrastructure & Security**
+Our immediate priority is to build the main.sh entry point. We will implement the user registration and login flow using SHA-256 hashing (via sha256sum) to secure users.tsv. This phase concludes once we successfully pass authenticated usernames as command-line arguments to the Python engine.
+
+* **Phase 2: Core Game Engine Architecture**
+Once the Bash part is complete, we will develop the game.py base class. This class will manage the NumPy board state, player turns, and the Pygame-CE GUI.
+
+* **Phase 3: Individual Game Logic (NumPy)**
+With the engine running, we will implement Tic-Tac-Toe, Othello, and Connect Four. We will focus on using NumPy array slicing to evaluate win/draw conditions, strictly avoiding manual loops per the project constraints.
+
+* **Phase 4: Analytics & Final Documentation**
+The final phase involves logging match results to history.csv, creating the leaderboard.sh stats parser, and generating Matplotlib visualizations. We will conclude with the LaTeX report and Makefile.
 
 
