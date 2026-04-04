@@ -1,9 +1,10 @@
 import pygame
 import sys
+import numpy as np
 
 pygame.init()
 
-WIDTH, HEIGHT = 800,800
+WIDTH, HEIGHT = 800, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tic tac toe")
 
@@ -19,20 +20,23 @@ CIRCLE_WIDTH = 5
 CROSS_WIDTH = 8
 SPACE = SQUARE_SIZE // 4
 
-# Colors used
-PINK= (255, 0, 102)
-PURPLE=(153, 51, 255)
+# Colors
+PINK = (255, 0, 102)
+PURPLE = (153, 51, 255)
 BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
 
-# background image
+# Background
 background = pygame.image.load("Origin.jpg").convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
-# board state: 0 - empty, 1 - player 1, 2 - player 2
-board = [[0 for _ in range(BOARD_COLS)] for _ in range(BOARD_ROWS)]
+# numpy array representing the board
+board = np.zeros((BOARD_ROWS, BOARD_COLS), dtype=int)
+
+#initial values
 player = 1
 game_over = False
-winning_line = None  # stores coordinates
+winning_line = None
 
 
 def draw_grid():
@@ -52,7 +56,7 @@ def draw_elements():
                      row * SQUARE_SIZE + SQUARE_SIZE // 2),
                     CIRCLE_RADIUS, CIRCLE_WIDTH
                 )
-            elif board[row][col] == 2:
+            elif board[row][col] == -1:
                 pygame.draw.line(
                     screen, PURPLE,
                     (col * SQUARE_SIZE + SPACE, row * SQUARE_SIZE + SPACE),
@@ -72,8 +76,7 @@ def draw_elements():
 
 def draw_winning_line():
     if winning_line:
-        pygame.draw.line(screen, (0, 255, 0),
-                         winning_line[0], winning_line[1], 8)
+        pygame.draw.line(screen, GREEN, winning_line[0], winning_line[1], 8)
 
 
 def mark_square(row, col, player):
@@ -85,15 +88,14 @@ def available_square(row, col):
 
 
 def check_win(player):
-    # gobal is used because we need to update the winning_line variable defined outside this function
     global winning_line
 
     # Horizontal
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS - 4):
-            if all(board[row][col + i] == player for i in range(5)):
-                y = row * SQUARE_SIZE + SQUARE_SIZE // 2
+            if board[row][col:col+5].tolist() == [player] * 5:
                 x1 = col * SQUARE_SIZE + SQUARE_SIZE // 2
+                y = row * SQUARE_SIZE + SQUARE_SIZE // 2
                 x2 = (col + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
                 winning_line = ((x1, y), (x2, y))
                 return True
@@ -101,7 +103,7 @@ def check_win(player):
     # Vertical
     for col in range(BOARD_COLS):
         for row in range(BOARD_ROWS - 4):
-            if all(board[row + i][col] == player for i in range(5)):
+            if board[row:row+5, col].tolist() == [player] * 5:
                 x = col * SQUARE_SIZE + SQUARE_SIZE // 2
                 y1 = row * SQUARE_SIZE + SQUARE_SIZE // 2
                 y2 = (row + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
@@ -111,7 +113,7 @@ def check_win(player):
     # Diagonal down
     for row in range(BOARD_ROWS - 4):
         for col in range(BOARD_COLS - 4):
-            if all(board[row + i][col + i] == player for i in range(5)):
+            if board[row:row+5, col:col+5].diagonal().tolist() == [player] * 5:
                 x1 = col * SQUARE_SIZE + SQUARE_SIZE // 2
                 y1 = row * SQUARE_SIZE + SQUARE_SIZE // 2
                 x2 = (col + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
@@ -122,7 +124,7 @@ def check_win(player):
     # Diagonal up
     for row in range(4, BOARD_ROWS):
         for col in range(BOARD_COLS - 4):
-            if all(board[row - i][col + i] == player for i in range(5)):
+            if np.fliplr(board[row-4:row+1, col:col+5]).diagonal().tolist() == [player] * 5:
                 x1 = col * SQUARE_SIZE + SQUARE_SIZE // 2
                 y1 = row * SQUARE_SIZE + SQUARE_SIZE // 2
                 x2 = (col + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
@@ -151,10 +153,10 @@ def main():
                     mark_square(row, col, player)
 
                     if check_win(player):
-                        print(f"Player {player} wins!")
                         game_over = True
 
-                    player = 2 if player == 1 else 1
+                    #
+                    player = -player
 
         screen.blit(background, (0, 0))
         draw_grid()

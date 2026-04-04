@@ -1,9 +1,12 @@
+import numpy as np
+
+
 class Game:
     
     def __init__(self):
         self.player = 1  
 
-    def draw_board(self):
+    def draw_grid(self):
        pass
 
     def switch_turns(self):
