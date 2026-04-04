@@ -1,8 +1,10 @@
 import pygame
 import sys
 import numpy as np
+from game import Game
 
 pygame.init()
+
 
 WIDTH, HEIGHT = 800, 800
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -33,8 +35,10 @@ background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 # numpy array representing the board
 board = np.zeros((BOARD_ROWS, BOARD_COLS), dtype=int)
 
-#initial values
-player = 1
+
+# Game object
+g = Game()
+
 game_over = False
 winning_line = None
 
@@ -79,8 +83,8 @@ def draw_winning_line():
         pygame.draw.line(screen, GREEN, winning_line[0], winning_line[1], 8)
 
 
-def mark_square(row, col, player):
-    board[row][col] = player
+def mark_square(row, col):
+    board[row][col] = g.player   
 
 
 def available_square(row, col):
@@ -136,7 +140,7 @@ def check_win(player):
 
 
 def main():
-    global player, game_over
+    global game_over
 
     while True:
         for event in pygame.event.get():
@@ -150,13 +154,12 @@ def main():
                 row = mouseY // SQUARE_SIZE
 
                 if available_square(row, col):
-                    mark_square(row, col, player)
+                    mark_square(row, col)
 
-                    if check_win(player):
+                    if check_win(g.player):
                         game_over = True
 
-                    #
-                    player = -player
+                    g.switch_turns()  
 
         screen.blit(background, (0, 0))
         draw_grid()
