@@ -4,10 +4,10 @@ import numpy as np
 class Game:
     
     def __init__(self):
-        self.player = 1  
+        pass 
 
     def draw_grid(self):
-       pass
+        pass
 
     def switch_turns(self):
         self.player *= -1
