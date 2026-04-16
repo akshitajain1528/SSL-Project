@@ -94,49 +94,52 @@ def available_square(row, col):
 def check_win(player):
     global winning_line
 
-    # Horizontal
-    for row in range(BOARD_ROWS):
-        for col in range(BOARD_COLS - 4):
-            if board[row][col:col+5].tolist() == [player] * 5:
-                x1 = col * SQUARE_SIZE + SQUARE_SIZE // 2
-                y = row * SQUARE_SIZE + SQUARE_SIZE // 2
-                x2 = (col + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
-                winning_line = ((x1, y), (x2, y))
-                return True
+    # horizontal
+    horizontal = board[:,:-4] + board[:,1:-3] + board[:,2:-2] + board[:,3:-1] + board[:,4:]
+    rows, cols = np.where(horizontal == 5 * player)
+    if len(rows) > 0:
+        r, c = rows[0], cols[0]
+        winning_line = (
+            (c * SQUARE_SIZE, r * SQUARE_SIZE + SQUARE_SIZE // 2),
+            ((c + 5) * SQUARE_SIZE, r * SQUARE_SIZE + SQUARE_SIZE // 2)
+        )
+        return True
 
-    # Vertical
-    for col in range(BOARD_COLS):
-        for row in range(BOARD_ROWS - 4):
-            if board[row:row+5, col].tolist() == [player] * 5:
-                x = col * SQUARE_SIZE + SQUARE_SIZE // 2
-                y1 = row * SQUARE_SIZE + SQUARE_SIZE // 2
-                y2 = (row + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
-                winning_line = ((x, y1), (x, y2))
-                return True
+    # vertical
+    vertical = board[:-4,:] + board[1:-3,:] + board[2:-2,:] + board[3:-1,:] + board[4:,:]
+    rows, cols = np.where(vertical == 5 * player)
+    if len(rows) > 0:
+        r, c = rows[0], cols[0]
+        winning_line = (
+            (c * SQUARE_SIZE + SQUARE_SIZE // 2, r * SQUARE_SIZE),
+            (c * SQUARE_SIZE + SQUARE_SIZE // 2, (r + 5) * SQUARE_SIZE)
+        )
+        return True
 
-    # Diagonal down
-    for row in range(BOARD_ROWS - 4):
-        for col in range(BOARD_COLS - 4):
-            if board[row:row+5, col:col+5].diagonal().tolist() == [player] * 5:
-                x1 = col * SQUARE_SIZE + SQUARE_SIZE // 2
-                y1 = row * SQUARE_SIZE + SQUARE_SIZE // 2
-                x2 = (col + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
-                y2 = (row + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
-                winning_line = ((x1, y1), (x2, y2))
-                return True
+    # diagonal ↘ (top-left to bottom-right)
+    diag_off = board[:-4,:-4] + board[1:-3,1:-3] + board[2:-2,2:-2] + board[3:-1,3:-1] + board[4:,4:]
+    rows, cols = np.where(diag_off == 5 * player)
+    if len(rows) > 0:
+        r, c = rows[0], cols[0]
+        winning_line = (
+            (c * SQUARE_SIZE, r * SQUARE_SIZE),
+            ((c + 5) * SQUARE_SIZE, (r + 5) * SQUARE_SIZE)
+        )
+        return True
 
-    # Diagonal up
-    for row in range(4, BOARD_ROWS):
-        for col in range(BOARD_COLS - 4):
-            if np.fliplr(board[row-4:row+1, col:col+5]).diagonal().tolist() == [player] * 5:
-                x1 = col * SQUARE_SIZE + SQUARE_SIZE // 2
-                y1 = row * SQUARE_SIZE + SQUARE_SIZE // 2
-                x2 = (col + 4) * SQUARE_SIZE + SQUARE_SIZE // 2
-                y2 = (row - 4) * SQUARE_SIZE + SQUARE_SIZE // 2
-                winning_line = ((x1, y1), (x2, y2))
-                return True
+    # diagonal ↙ (top-right to bottom-left)
+    diag_main = board[:-4,4:] + board[1:-3,3:-1] + board[2:-2,2:-2] + board[3:-1,1:-3] + board[4:,:-4]
+    rows, cols = np.where(diag_main == 5 * player)
+    if len(rows) > 0:
+        r, c = rows[0], cols[0]
+        winning_line = (
+            ((c + 4) * SQUARE_SIZE, r * SQUARE_SIZE),
+            (c * SQUARE_SIZE, (r + 4) * SQUARE_SIZE)
+        )
+        return True
 
     return False
+
 
 
 def main():
