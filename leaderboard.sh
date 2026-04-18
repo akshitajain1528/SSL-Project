@@ -12,6 +12,7 @@ declare -A winner
 declare -A points
 p=0
 
+
 for(( k=0; k<i; k++ )); do
     points[$k]=0
 done
