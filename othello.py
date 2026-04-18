@@ -66,6 +66,108 @@ def draw_elements():
                 )
 
 
+def switch_possible(row, col, dr, dc, player):
+# Check if we can flip pieces in direction (dr, dc)
+    r, c = row + dr, col + dc
+    has_opponent_piece = False    
+    while 0 <= r < BOARD_ROWS and 0 <= c < BOARD_COLS:
+        if board[r, c] == -player:
+            has_opponent_piece = True
+        elif board[r, c] == player:
+            return has_opponent_piece
+        else:
+            break
+        r += dr
+        c += dc
+    return False    
+
+def switch_pieces(row, col, player):
+    # Flip pieces in all 8 directions
+    for dr in [-1, 0, 1]:
+        for dc in [-1, 0, 1]:
+            if dr == 0 and dc == 0:
+                continue
+            if switch_possible(row, col, dr, dc, player):
+                r, c = row + dr, col + dc
+                while board[r, c] == -player:
+                    board[r, c] = player
+                    r += dr
+                    c += dc
+
+# def switch_pieces(row,col,player):
+#     #horizontal
+#     mask = board[row, :] == player
+#     if np.any(mask):
+#         left = np.where(mask)[0][0]
+#         right = np.where(mask)[0][-1]
+#         if col < left:
+#             board[row, col:right] = player
+#         elif col > right:
+#             board[row, left:col+1] = player
+    
+#     #vertical
+#     mask = board[:, col] == player
+#     if np.any(mask):
+#         top = np.where(mask)[0][0]
+#         bottom = np.where(mask)[0][-1]
+#         if row < top:
+#             board[row:bottom, col] = player
+#         elif row > bottom:
+#             board[top:row+1, col] = player
+
+#     #diagonal \
+#     mask = np.diag(board, col - row) == player
+#     if np.any(mask):
+#         top_left = np.where(mask)[0][0]
+#         bottom_right = np.where(mask)[0][-1]
+#         if row < top_left:
+#             board[row:bottom_right, col:col+(bottom_right-top_left)] = player
+#         elif row > bottom_right:
+#             board[top_left:row+1, col-(row-bottom_right):col+1] = player
+    
+#     #diagonal /
+#     mask = np.diag(np.fliplr(board), (BOARD_COLS - 1 - col) - row) == player
+#     if np.any(mask):
+#         top_right = np.where(mask)[0][0]
+#         bottom_left = np.where(mask)[0][-1]
+#         if row < top_right:
+#             board[row:bottom_left, col:col-(bottom_left-top_right)] = player
+#         elif row > bottom_left:
+#             board[top_right:row+1, col+(row-bottom_left):col+1] = player    
+    
+
+def board_full():
+    return np.all(board != 0)
+
+def win_count(player):
+    return np.sum(board == player)
+
+def win_check(player):
+    black_count = win_count(1)
+    white_count = win_count(-1)
+    if black_count + white_count == BOARD_ROWS * BOARD_COLS or black_count == 0 or white_count == 0:
+        if black_count > white_count:
+            return 1
+        elif white_count > black_count:
+            return -1
+        else:
+            return 0  # tie
+    return None  # game not over
+
+winner= win_check(player)
+if winner is not None:
+    if winner == 1:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("BLACK WINS!")
+    elif winner == -1:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("WHITE WINS!")
+    else:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+        pygame.display.set_caption("IT'S A TIE!")
+    
+
+
 def main():
     global player
 
