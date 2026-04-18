@@ -90,22 +90,28 @@ class Connect4(Game):
         # --- Main function ---
 
 
-def main():
-    #GAMEPY START#
-    pygame.init()
-    screen = pygame.display.set_mode((COLUMNS*SQUARESIZE,COLUMNS*SQUARESIZE))
-    pygame.display.set_caption("Connect 4")
+def main(screen,player1,player2):
 
 
     my_game = Connect4()
     my_game.draw_grid(screen)
     win_font = pygame.font.SysFont("monospace", 75)
 
+    clock = pygame.time.Clock()
+
     while not my_game.game_over:
+
+        clock.tick()
+
         # --- if quit ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
             
             if event.type == pygame.MOUSEBUTTONDOWN:
 
