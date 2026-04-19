@@ -1,2 +1,2 @@
-Assets_MC/*
-__pycache__/
+__pycache__/*.pyc
+RANDOM.py

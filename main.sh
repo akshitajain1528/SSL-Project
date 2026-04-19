@@ -82,4 +82,5 @@ fi
 done
 
 
-# --python iske baad
+# --- PYTHON ---
+python3 game.py ${PLAYER1} ${PLAYER2}

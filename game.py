@@ -51,6 +51,7 @@ BORDER_DARK = (85, 85, 85)
 pygame.init()
 pygame.mixer.init()
 WIDTH, HEIGHT = 1200, 800
+
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Minecraft Game Hub")
 
@@ -65,10 +66,12 @@ GAME_BG = pygame.transform.scale(bg_img,(WIDTH,HEIGHT))
 
 
 # --- FONT ---
-font_path = os.path.join(ASSETS,'font.otf')
-title_font = pygame.font.Font(font_path,80)
-button_font = pygame.font.Font(font_path,36)
-small_font = pygame.font.Font(font_path,24)
+font_modern = os.path.join(ASSETS,'font_modern.otf')
+font_minecrafter = os.path.join(ASSETS,'minecrafter.ttf')
+font_pixel_purl = os.path.join(ASSETS,'pixel_purl.ttf')
+title_font = pygame.font.Font(font_minecrafter,80)
+button_font = pygame.font.Font(font_modern,36)
+small_font = pygame.font.Font(font_modern,24)
 
 
 
