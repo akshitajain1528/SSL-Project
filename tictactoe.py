@@ -27,6 +27,7 @@ PINK = (255, 0, 102)
 PURPLE = (153, 51, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
+player=1
 
 # Background
 background = pygame.image.load("Origin.jpg").convert()
@@ -84,7 +85,8 @@ def draw_winning_line():
 
 
 def mark_square(row, col):
-    board[row][col] = g.player   
+    global player
+    board[row][col] = player   
 
 
 def available_square(row, col):
@@ -116,7 +118,7 @@ def check_win(player):
         )
         return True
 
-    # diagonal ↘ (top-left to bottom-right)
+    # diagonal  (top-left to bottom-right)
     diag_off = board[:-4,:-4] + board[1:-3,1:-3] + board[2:-2,2:-2] + board[3:-1,3:-1] + board[4:,4:]
     rows, cols = np.where(diag_off == 5 * player)
     if len(rows) > 0:
@@ -127,14 +129,14 @@ def check_win(player):
         )
         return True
 
-    # diagonal ↙ (top-right to bottom-left)
+    # off diagonal  (top-right to bottom-left)
     diag_main = board[:-4,4:] + board[1:-3,3:-1] + board[2:-2,2:-2] + board[3:-1,1:-3] + board[4:,:-4]
     rows, cols = np.where(diag_main == 5 * player)
     if len(rows) > 0:
         r, c = rows[0], cols[0]
         winning_line = (
-            ((c + 4) * SQUARE_SIZE, r * SQUARE_SIZE),
-            (c * SQUARE_SIZE, (r + 4) * SQUARE_SIZE)
+            ((c + 5) * SQUARE_SIZE, r * SQUARE_SIZE),
+            (c * SQUARE_SIZE, (r + 5) * SQUARE_SIZE)
         )
         return True
 
@@ -142,14 +144,53 @@ def check_win(player):
 
 
 
-def main():
-    global game_over
+# def main(screen, player1, player2):
+#     global game_over
+
+#     while True:
+#         for event in pygame.event.get():
+#             if event.type == pygame.QUIT:
+#                 pygame.quit()
+#                 sys.exit()
+
+#             if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
+#                 mouseX, mouseY = event.pos
+#                 col = mouseX // SQUARE_SIZE
+#                 row = mouseY // SQUARE_SIZE
+
+#                 if available_square(row, col):
+#                     mark_square(row, col)
+
+#                     if check_win(g.player):
+#                         game_over = True
+
+#                     g.switch_turns()  
+
+#         screen.blit(background, (0, 0))
+#         draw_grid()
+#         draw_elements()
+#         draw_winning_line()
+#         pygame.display.update()
+
+def main(screen, player1, player2):
+    global game_over, player
+
+    clock = pygame.time.Clock()
+    game_over = False 
+    player=1 
 
     while True:
+        clock.tick(60)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
+            # --- BACK TO HUB ---
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return  # exits this game and goes back
 
             if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
                 mouseX, mouseY = event.pos
@@ -159,11 +200,12 @@ def main():
                 if available_square(row, col):
                     mark_square(row, col)
 
-                    if check_win(g.player):
+                    if check_win(player):
                         game_over = True
 
-                    g.switch_turns()  
+                    player *= -1
 
+        # Drawing
         screen.blit(background, (0, 0))
         draw_grid()
         draw_elements()
@@ -172,4 +214,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(screen, None, None)

@@ -6,7 +6,7 @@ pygame.init()
 
 # Screen
 WIDTH, HEIGHT = 800, 800
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((800,800))
 pygame.display.set_caption("Othello")
 
 # Colors
@@ -92,48 +92,7 @@ def switch_pieces(row, col, player):
                 while board[r, c] == -player:
                     board[r, c] = player
                     r += dr
-                    c += dc
-
-# def switch_pieces(row,col,player):
-#     #horizontal
-#     mask = board[row, :] == player
-#     if np.any(mask):
-#         left = np.where(mask)[0][0]
-#         right = np.where(mask)[0][-1]
-#         if col < left:
-#             board[row, col:right] = player
-#         elif col > right:
-#             board[row, left:col+1] = player
-    
-#     #vertical
-#     mask = board[:, col] == player
-#     if np.any(mask):
-#         top = np.where(mask)[0][0]
-#         bottom = np.where(mask)[0][-1]
-#         if row < top:
-#             board[row:bottom, col] = player
-#         elif row > bottom:
-#             board[top:row+1, col] = player
-
-#     #diagonal \
-#     mask = np.diag(board, col - row) == player
-#     if np.any(mask):
-#         top_left = np.where(mask)[0][0]
-#         bottom_right = np.where(mask)[0][-1]
-#         if row < top_left:
-#             board[row:bottom_right, col:col+(bottom_right-top_left)] = player
-#         elif row > bottom_right:
-#             board[top_left:row+1, col-(row-bottom_right):col+1] = player
-    
-#     #diagonal /
-#     mask = np.diag(np.fliplr(board), (BOARD_COLS - 1 - col) - row) == player
-#     if np.any(mask):
-#         top_right = np.where(mask)[0][0]
-#         bottom_left = np.where(mask)[0][-1]
-#         if row < top_right:
-#             board[row:bottom_left, col:col-(bottom_left-top_right)] = player
-#         elif row > bottom_left:
-#             board[top_right:row+1, col+(row-bottom_left):col+1] = player    
+                    c += dc  
     
 
 def board_full():
@@ -168,29 +127,59 @@ if winner is not None:
     
 
 
-def main():
-    global player
+def main(screen, player1, player2):
+    global game_over, player
+
+    clock = pygame.time.Clock()
+    game_over = False
 
     while True:
+        clock.tick(60)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouseX, mouseY = event.pos
                 col = mouseX // SQUARE_SIZE
                 row = mouseY // SQUARE_SIZE
 
-                # Place piece only if empty
                 if board[row, col] == 0:
-                    board[row, col] = player
-                    player *= -1  # switch turns
+                    valid_move = False
+
+                    for dr in [-1, 0, 1]:
+                        for dc in [-1, 0, 1]:
+                            if dr == 0 and dc == 0:
+                                continue
+                            if switch_possible(row, col, dr, dc, player):
+                                valid_move = True
+
+                    if valid_move:
+                        board[row, col] = player
+                        switch_pieces(row, col, player)
+                        player *= -1
+
+                    if not valid_move:
+                        player *= -1  
+
+        winner = win_check(player)
+        if winner is not None:
+            if winner == 1:
+                pygame.display.set_caption("BLACK WINS!")
+            elif winner == -1:
+                pygame.display.set_caption("WHITE WINS!")
+            else:
+                pygame.display.set_caption("IT'S A TIE!")
 
         draw_board()
         draw_elements()
         pygame.display.update()
 
-
 if __name__ == "__main__":
-    main()
+    main(screen, None, None)
