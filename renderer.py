@@ -25,17 +25,17 @@ medium_font = pygame.font.Font(font_modern,36)
 
 # --- ASSET LOADING ---
 p1_img = pygame.image.load(os.path.join(ASSETS,'diamond.png')).convert_alpha()
-P1_SPRITE = pygame.transform.scale(p1_img,(80,80))
+P1_SPRITE = pygame.transform.scale(p1_img,(90,90))
 
 p2_img = pygame.image.load(os.path.join(ASSETS,'emerald.png')).convert_alpha()
-P2_SPRITE = pygame.transform.scale(p2_img,(80,80))
+P2_SPRITE = pygame.transform.scale(p2_img,(90,90))
 
 
 # --- GHOST VERSIONS ---
 P1_GHOST = P1_SPRITE.copy()
-P1_GHOST.set_alpha(220)
+P1_GHOST.set_alpha(200)
 P2_GHOST = P2_SPRITE.copy()
-P2_GHOST.set_alpha(220)
+P2_GHOST.set_alpha(200)
 
 
 
@@ -99,7 +99,7 @@ def connect4_frame(screen,game,player1,player2,bg_img,anim_state,win_data):
     screen.blit(bg_img,(0,0))
     overlay = pygame.Surface((BOARD_WIDTH_C4+40,BOARD_HEIGHT_C4+40),pygame.SRCALPHA)
     overlay.fill((0,0,0))
-    overlay.set_alpha(150)
+    overlay.set_alpha(70)
     screen.blit(overlay,(X_OFFSET_C4-20,Y_OFFSET_C4-20))
 
 
@@ -113,16 +113,18 @@ def connect4_frame(screen,game,player1,player2,bg_img,anim_state,win_data):
             text_with_shadow(screen,f"{player2}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,110,BLUE_RGBA,BLACK)
 
     # --- DYNAMIC RENDERING ---
-    if not is_anim and not game.game_over and (X_OFFSET_C4 <= mx <= X_OFFSET_C4 + BOARD_WIDTH_C4):
+    if not is_anim and not game.game_over and (X_OFFSET_C4 <= mx <= X_OFFSET_C4 + BOARD_WIDTH_C4) and (Y_OFFSET_C4 <= my <= Y_OFFSET_C4 + BOARD_HEIGHT_C4):
         hover_col = int((mx-X_OFFSET_C4)//SQUARESIZE_C4)
-        sprite_x = X_OFFSET_C4 + (hover_col*SQUARESIZE_C4) + 10
+        hover_row = int((my-Y_OFFSET_C4)//SQUARESIZE_C4)
+        sprite_x = X_OFFSET_C4 + (hover_col*SQUARESIZE_C4) + 5
+        sprite_y = Y_OFFSET_C4 + (hover_row*SQUARESIZE_C4) + 5
         ghost = P1_GHOST if game.player ==1 else P2_GHOST
-        screen.blit(ghost,(sprite_x, Y_OFFSET_C4 - SQUARESIZE_C4 + 10))
+        screen.blit(ghost,(sprite_x, sprite_y))
 
     if is_anim: 
-        sprite_x = X_OFFSET_C4 + (anim_col*SQUARESIZE_C4) + 10
+        sprite_x = X_OFFSET_C4 + (anim_col*SQUARESIZE_C4) + 5
         active_sprite = P1_SPRITE if anim_player == 1 else P2_SPRITE
-        screen.blit(active_sprite, (sprite_x,anim_y+10))
+        screen.blit(active_sprite, (sprite_x,anim_y+5))
 
     # --- MAKING THE GRID ---
     grid_layer = pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
@@ -135,12 +137,12 @@ def connect4_frame(screen,game,player1,player2,bg_img,anim_state,win_data):
             # Static pieces
             piece = game.board[r, c]
             if piece == 1:
-                screen.blit(P1_SPRITE, (x + 10, y + 10))
+                screen.blit(P1_SPRITE, (x + 5, y +5))
             elif piece == -1:
-                screen.blit(P2_SPRITE, (x + 10, y + 10))
+                screen.blit(P2_SPRITE, (x + 5, y + 5))
 
-            pygame.draw.rect(grid_layer,BORDER_RGBA,(x,y,SQUARESIZE_C4,SQUARESIZE_C4))
-            pygame.draw.circle(grid_layer,BORDER_RGBA,(x+50,y+50),40)
+            pygame.draw.rect(grid_layer,(0,0,0,150),(x,y,SQUARESIZE_C4,SQUARESIZE_C4),3)
+            # pygame.draw.circle(grid_layer,BORDER_RGBA,(x+50,y+50),40)
 
     screen.blit(grid_layer,(0,0))
 
