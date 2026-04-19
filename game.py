@@ -8,6 +8,10 @@ os.environ["SDL_AUDIODRIVER"] = "dummy"
 # Game Class
 # ============
 
+# ============
+# Game Class
+# ============
+
 class Game:
     
     def __init__(self):
@@ -144,7 +148,7 @@ def image_button(screen, rect, image, is_hovering):
     # --- Center image inside rect ---
     img_rect = img.get_rect(center=rect.center)
     screen.blit(img, img_rect)
-
+    
 
 def wireframe_box(screen,rect,text=""):
     pygame.draw.rect(screen,WHITE,rect,width=3,border_radius=10)
@@ -152,6 +156,7 @@ def wireframe_box(screen,rect,text=""):
     if text:
         label = small_font.render(text,False,WHITE)
         screen.blit(label, label.get_rect(center=rect.center))
+
 
 
 # ==========================
@@ -193,8 +198,8 @@ def main_hub(player1,player2):
     # --- WIREBOXES AROUND IT ---
     box_character_left = pygame.Rect(50,150,200,50)
     box_character_right = pygame.Rect(WIDTH-250,150,200,50)
-    box_left_panel = pygame.Rect(50,250,250,480)
-    box_right_panel = pygame.Rect(WIDTH-300,250,250,480)
+    box_left_panel = pygame.Rect(50,250,200,400)
+    box_right_panel = pygame.Rect(WIDTH-250,250,200,400)
 
 
     # --- BUTTON RECTANGLES: GAME MENU ---
@@ -222,15 +227,14 @@ def main_hub(player1,player2):
         h_dog_l = btn_dog_l.collidepoint((mx,my))
         h_steve_l = btn_steve_l.collidepoint((mx,my))
 
+
+
+
         # ===================================
         #      FRIST PAGE: START SCREEN
         # ===================================
 
         if current_state=="START_SCREEN":
-
-                        # --- SKETCH BOXES ---
-            wireframe_box(screen,box_character_left,"CHARACTER")
-            wireframe_box(screen,box_character_right,"CHARACTER")
 
             # --- WELCOME TO GAMECRAFT ---
             text_with_shadow(screen,'WELCOME TO',title_font,WIDTH//2,80,WHITE)
@@ -314,6 +318,15 @@ def main_hub(player1,player2):
             if char_right=="steve":
                 h_steve_char_r = btn_steve_char_r.collidepoint((mx,my))
                 image_button(screen,btn_steve_char_r,steve_img,h_steve_r)
+
+
+
+            # --- SKETCH BOXES ---
+            wireframe_box(screen,box_character_left,"CHARACTER")
+            wireframe_box(screen,box_character_right,"CHARACTER")
+            wireframe_box(screen,box_left_panel)
+            wireframe_box(screen,box_right_panel)
+
 
             # --- EVENT LISTENERS: START PAGE ---
             for event in pygame.event.get():
@@ -481,7 +494,7 @@ def main_hub(player1,player2):
                         current_state="START_SCREEN"
 
     # ====================================
-    #        2ND PAGE: leaderboard 
+    #        2ND PAGE: LEADERBOARD
     # ====================================
 
         elif current_state=="LEADERBOARD":
@@ -505,8 +518,6 @@ def main_hub(player1,player2):
                     if hover_back:
                         current_state="START_SCREEN"
 
-
-        
 
         pygame.display.update()
 

@@ -1,24 +1,25 @@
 import numpy as np
 import pygame
 import sys
+import os
 import math
+
+from configuration import *
+from renderer import *
 from game import Game
 
-ROWS = 6
-COLUMNS = 7
-SQUARESIZE = 100
-RADIUS = int(100/2 - 5)
 
-BLUE = (0,0,255)
-RED = (255,0,0)
-YELLOW = (255,255,0)
-BLACK = (0,0,0)
+# --- BACKGROUND ---
+c4_bg_path = os.path.join(ASSETS,'connect4_bg.jpeg')
+c4_bg_img = pygame.image.load(c4_bg_path).convert()
+c4_GAME_BG = pygame.transform.scale(c4_bg_img,(WIDTH,HEIGHT))
+
 
 class Connect4(Game):
     
 
     def __init__(self):
-        self.board_shape = (ROWS,COLUMNS)
+        self.board_shape = (ROWS_C4,COLUMNS_C4)
 
         self.reset()
 
@@ -61,94 +62,86 @@ class Connect4(Game):
         return 0
 
 
-# --- FRONT-END ---
 
-    def draw_grid(self,screen):
-
-        pygame.draw.rect(screen,BLUE,(0,SQUARESIZE,SQUARESIZE*COLUMNS,SQUARESIZE*ROWS))
-
-        for r in range(ROWS):
-            for c in range(COLUMNS):
-
-                center_x = int(c * SQUARESIZE + SQUARESIZE / 2)
-                center_y = int(r * SQUARESIZE + SQUARESIZE + SQUARESIZE / 2)
-                    
-                    # Check what number is sitting in our NumPy array
-                piece = self.board[r, c]
-                
-                if piece == 0:
-                    pygame.draw.circle(screen, BLACK, (center_x, center_y), RADIUS)
-                elif piece == 1:
-                    pygame.draw.circle(screen, RED, (center_x, center_y), RADIUS)
-                elif piece == -1:
-                    pygame.draw.circle(screen, YELLOW, (center_x, center_y), RADIUS)
-
-        # Push the drawing to the monitor
-        pygame.display.update()
-
-
-        # --- Main function ---
-
-
-def main():
-    #GAMEPY START#
-    pygame.init()
-    screen = pygame.display.set_mode((COLUMNS*SQUARESIZE,COLUMNS*SQUARESIZE))
-    pygame.display.set_caption("Connect 4")
+# --- MAIN FUNCTION ---
+def main(screen,player1,player2):
 
 
     my_game = Connect4()
-    my_game.draw_grid(screen)
     win_font = pygame.font.SysFont("monospace", 75)
+    winner = None
+    win_color = None
+
+    clock = pygame.time.Clock()
+
+    # --- ANIMATION & WIN VARIABLES ---
+    is_anim,anim_col,anim_target_row,anim_y,anim_player = False,0,0,0,0
+    DROP_SPEED = 30
+    win_data = (None,None)
+    
+
 
     while not my_game.game_over:
-        # --- if quit ---
+
+        clock.tick(60)
+
+        # game_window(my_game,screen,player1,player2,winner,win_color)
+        anim_state = (is_anim,anim_col,anim_y,anim_player)
+        connect4_frame(screen,my_game,player1,player2,c4_GAME_BG,anim_state,win_data)
+
+
+        # --- EVENTS : CONNECT4 ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    return
             
-            if event.type == pygame.MOUSEBUTTONDOWN:
-
-                pygame.draw.rect(screen, BLACK, (0, 0, SQUARESIZE*COLUMNS, SQUARESIZE))
-
+            if event.type == pygame.MOUSEBUTTONDOWN and not is_anim:
                 posx = event.pos[0]
-                col = int(math.floor(posx/SQUARESIZE))
+                posy = event.pos[1]
+                hover_row = int((posy-Y_OFFSET_C4)//SQUARESIZE_C4)
+                sprite_y = Y_OFFSET_C4 + (hover_row*SQUARESIZE_C4) + 10
 
-                row = my_game.get_available_row(col)
+
+                if posx>=X_OFFSET_C4 and posx<=X_OFFSET_C4+BOARD_WIDTH_C4:
+                    col = int(math.floor((posx-X_OFFSET_C4)/SQUARESIZE_C4))
+                    row = my_game.get_available_row(col)
 
                 if row is not None:
-                    my_game.board[row,col] = my_game.player
+                    is_anim = True
+                    anim_col,anim_target_row,anim_player = col,row,my_game.player
+                    anim_y = sprite_y
 
-                    win_status = my_game.check_win()
-                    
-                    if win_status == 1:
-                        label = win_font.render("Player 1 Wins!", 1, RED)
-                        screen.blit(label, (40, 10)) # Draw text at X=40, Y=10
-                        my_game.game_over = True
-                        
-                    elif win_status == -1:
-                        label = win_font.render("Player 2 Wins!", 1, YELLOW)
-                        screen.blit(label, (40, 10))
-                        my_game.game_over = True
-                        
-                    elif my_game.is_full():
-                        label = win_font.render("It's a Tie!", 1, BLUE)
-                        screen.blit(label, (40, 10))
-                        my_game.game_over = True
-
-                    
-
-                    my_game.switch_turns()
                 else:
-                    label = win_font.render("Select some other column.",1,BLUE)
+                    label = win_font.render("Select some other column.",1,BLUE_RGBA)
                     screen.blit(label,(40,10))
+
+        if is_anim:
+            target_y = Y_OFFSET_C4 + (anim_target_row*SQUARESIZE_C4)
+            anim_y +=DROP_SPEED
+
+            if anim_y>=target_y:
+                anim_y = target_y
+                is_anim = False
                 
-                my_game.draw_grid(screen)
-
-    if my_game.game_over:
-        pygame.time.wait(5000)
+                my_game.drop_piece(anim_target_row,anim_col)
 
 
+                if my_game.check_win() == 1:
+                    my_game.game_over = True
+                    win_data = (player1,RED_RGBA)
+
+                elif my_game.check_win() == -1:
+                    my_game.game_over = True
+                    win_data(player2,BLUE_RGBA)
+
+                my_game.switch_turns()
+
+                
 
 if __name__ == "__main__":
     main()
