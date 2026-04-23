@@ -133,11 +133,11 @@ def main(screen,player1,player2):
 
                 if my_game.check_win() == 1:
                     my_game.game_over = True
-                    win_data = (player1,RED_RGBA)
+                    win_data = (player1,BLUE_RGBA)
 
                 elif my_game.check_win() == -1:
                     my_game.game_over = True
-                    win_data(player2,BLUE_RGBA)
+                    win_data(player2,RED_RGBA)
 
                 my_game.switch_turns()
 

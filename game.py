@@ -2,7 +2,8 @@ import numpy as np
 import pygame
 import sys
 import os
-os.environ["SDL_AUDIODRIVER"] = "dummy"
+
+os.environ["SDL_AUDIODRIVER"] = "dummy" 
 
 # ============
 # Game Class
@@ -39,25 +40,16 @@ class Game:
     
 
 
-
-# --- MINECRAFT COLORS ---
-DIRT_BROWN = (134, 96, 67)
-GRASS_GREEN = (89, 166, 34)
-STONE_GREY = (125, 125, 125)
-OBSIDIAN_BLACK = (20, 18, 32)
-WHITE = (255, 255, 255)
-MC_YELLOW = (255, 255, 85)
-UI_GREY = (168, 168, 168)
-BORDER_DARK = (85, 85, 85)
-
-
-
 # --- Initialising pygame ---
 pygame.init()
 pygame.mixer.init()
 WIDTH, HEIGHT = 1200, 800
 screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Minecraft Game Hub")
+
+
+from configuration import *
+from renderer import *
 
 
 ASSETS = 'Assets_MC'
@@ -67,96 +59,10 @@ bg_path = os.path.join(ASSETS,'minecraft_bg.png')
 bg_img = pygame.image.load(bg_path).convert()
 GAME_BG = pygame.transform.scale(bg_img,(WIDTH,HEIGHT))
 
-# --- Load charcter images ---
-zombie_img = pygame.image.load(os.path.join(ASSETS, "zombie.png")).convert_alpha()
-pig_img = pygame.image.load(os.path.join(ASSETS, "pig.png")).convert_alpha()
-dog_img = pygame.image.load(os.path.join(ASSETS, "dog.png")).convert_alpha()
-steve_img = pygame.image.load(os.path.join(ASSETS, "steve.png")).convert_alpha()
-
-
-
-# --- FONT ---
-font_path = os.path.join(ASSETS,'font_modern.otf')
-title_font = pygame.font.Font(font_path,80)
-button_font = pygame.font.Font(font_path,36)
-small_font = pygame.font.Font(font_path,24)
-
-
 
 # --- SOUND EFFECTS ---
 click_path = os.path.join(ASSETS,'click.mp3')
 click_sound = pygame.mixer.Sound(click_path)
-
-
-# ======================
-#    UI ELEMENT FUXNS
-# ======================
-
-def text_with_shadow (screen,text,font,c_x,c_y,color):
-
-    # --- Shadow (Black, offset 4 pixels) ---
-    shadow = font.render(text, False, (0, 0, 0))
-    shadow_rect = shadow.get_rect(center=(c_x + 4, c_y + 4))
-    screen.blit(shadow, shadow_rect)
-    
-    # --- Main Text ---
-    label = font.render(text, False, color)
-    label_rect = label.get_rect(center=(c_x, c_y))
-    screen.blit(label, label_rect)
-
-
-def menu_button(screen, rect, text, is_hovering):
-    """Draws a multi-layered Minecraft menu button over the background artwork."""
-    
-    # --- Dynamic Hover Colors (Dark border standard, White border hover) ---
-    border_color = WHITE if is_hovering else BORDER_DARK
-    text_color = MC_YELLOW if is_hovering else WHITE
-    
-    # --- Draw base UI grey block (slightly transparent for cool overlay effect) ---
-    overlay = pygame.Surface((rect.width, rect.height))
-    overlay.set_alpha(200) # (0-255 opacity) let the background bleed through slightly
-    overlay.fill(UI_GREY)
-    screen.blit(overlay, (rect.x, rect.y))
-    
-    # --- Draw accurate Minecraft 3D Border ---
-    # (Optional highlight line at top/left, shadow line at bottom/right)
-    pygame.draw.rect(screen, border_color, rect, width=4)
-
-    # --- Render Text ---
-    label = button_font.render(text, False, text_color)
-    label_rect = label.get_rect(center=rect.center)
-    screen.blit(label, label_rect)
-
-def image_button(screen, rect, image, is_hovering):
-    """Draws an image-based button inside a UI rectangle."""
-
-    # --- Dynamic Hover Border ---
-    if is_hovering:
-        border_color = WHITE
-        pygame.draw.rect(screen, border_color, rect, width=4)
-
-    # --- Draw base UI grey block ---
-    # overlay = pygame.Surface((rect.width, rect.height))
-    # overlay.set_alpha(200)
-    # overlay.fill(UI_GREY)
-    # screen.blit(overlay, (rect.x, rect.y))
-    
-
-    # --- Resize image to fit button ---
-    img = pygame.transform.scale(image, (rect.width - 10, rect.height - 10))
-
-    # --- Center image inside rect ---
-    img_rect = img.get_rect(center=rect.center)
-    screen.blit(img, img_rect)
-    
-
-def wireframe_box(screen,rect,text=""):
-    pygame.draw.rect(screen,WHITE,rect,width=3,border_radius=10)
-
-    if text:
-        label = small_font.render(text,False,WHITE)
-        screen.blit(label, label.get_rect(center=rect.center))
-
 
 
 # ==========================
@@ -239,8 +145,8 @@ def main_hub(player1,player2):
             # --- WELCOME TO GAMECRAFT ---
             text_with_shadow(screen,'WELCOME TO',title_font,WIDTH//2,80,WHITE)
             text_with_shadow(screen,"GAMECRAFT",title_font,WIDTH//2,200,WHITE)
-            text_with_shadow(screen,f"{player1}",button_font,WIDTH//2-450,80,MC_YELLOW)
-            text_with_shadow(screen,f"{player2}",button_font,WIDTH//2+450,80,MC_YELLOW)
+            text_with_shadow(screen,f"{player1}",button_font,WIDTH//2-450,80,YELLOW)
+            text_with_shadow(screen,f"{player2}",button_font,WIDTH//2+450,80,YELLOW)
 
             # --- HOVERABLE BUTTONS ---
             h_menu = btn_start_game_menu.collidepoint((mx,my))
@@ -324,7 +230,6 @@ def main_hub(player1,player2):
             # --- SKETCH BOXES ---
             wireframe_box(screen,box_character_left,"CHARACTER")
             wireframe_box(screen,box_character_right,"CHARACTER")
-
 
 
             # --- EVENT LISTENERS: START PAGE ---
@@ -412,7 +317,7 @@ def main_hub(player1,player2):
 
             # --- ADD TEXT ---
             text_with_shadow(screen,"GAMECRAFT",title_font,WIDTH//2,80,WHITE)
-            text_with_shadow(screen,f"{player1} VS {player2}",button_font,WIDTH//2,180,MC_YELLOW)
+            text_with_shadow(screen,f"{player1} VS {player2}",button_font,WIDTH//2,180,YELLOW)
 
 
             # --- HOVERABLE BUTTONS ---

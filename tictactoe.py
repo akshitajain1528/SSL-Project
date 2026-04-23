@@ -3,156 +3,113 @@ import sys
 import numpy as np
 from game import Game
 
-pygame.init()
+from configuration import *
+from renderer import *
 
 
-WIDTH, HEIGHT = 800, 800
+
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tic tac toe")
 
-# Grid dimensions
-LINE_WIDTH = 3
-BOARD_ROWS = 10
-BOARD_COLS = 10
-SQUARE_SIZE = WIDTH // BOARD_COLS
-
-# Element dimensions
-CIRCLE_RADIUS = SQUARE_SIZE // 3
-CIRCLE_WIDTH = 5
-CROSS_WIDTH = 8
-SPACE = SQUARE_SIZE // 4
-
-# Colors
-PINK = (255, 0, 102)
-PURPLE = (153, 51, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)
-player=1
 
 # Background
-background = pygame.image.load("Origin.jpg").convert()
+background = pygame.image.load("Assets_MC/nether.jpeg").convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
-# numpy array representing the board
-board = np.zeros((BOARD_ROWS, BOARD_COLS), dtype=int)
 
 
-# Game object
-g = Game()
+class TicTacToe(Game):
 
-game_over = False
-winning_line = None
-
-
-def draw_grid():
-    for row in range(1, BOARD_ROWS):
-        pygame.draw.line(screen, BLACK, (0, row * SQUARE_SIZE), (WIDTH, row * SQUARE_SIZE), LINE_WIDTH)
-    for col in range(1, BOARD_COLS):
-        pygame.draw.line(screen, BLACK, (col * SQUARE_SIZE, 0), (col * SQUARE_SIZE, HEIGHT), LINE_WIDTH)
+    def __init__(self):
+        self.board_shape = (ROWS_TTT,COLS_TTT)
+        self.reset()
+        self.winning_line = None
+        self.win_anim_progress = 0.0
 
 
-def draw_elements():
-    for row in range(BOARD_ROWS):
-        for col in range(BOARD_COLS):
-            if board[row][col] == 1:
-                pygame.draw.circle(
-                    screen, PINK,
-                    (col * SQUARE_SIZE + SQUARE_SIZE // 2,
-                     row * SQUARE_SIZE + SQUARE_SIZE // 2),
-                    CIRCLE_RADIUS, CIRCLE_WIDTH
-                )
-            elif board[row][col] == -1:
-                pygame.draw.line(
-                    screen, PURPLE,
-                    (col * SQUARE_SIZE + SPACE, row * SQUARE_SIZE + SPACE),
-                    (col * SQUARE_SIZE + SQUARE_SIZE - SPACE,
-                     row * SQUARE_SIZE + SQUARE_SIZE - SPACE),
-                    CROSS_WIDTH
-                )
-                pygame.draw.line(
-                    screen, PURPLE,
-                    (col * SQUARE_SIZE + SPACE,
-                     row * SQUARE_SIZE + SQUARE_SIZE - SPACE),
-                    (col * SQUARE_SIZE + SQUARE_SIZE - SPACE,
-                     row * SQUARE_SIZE + SPACE),
-                    CROSS_WIDTH
-                )
+    def draw_winning_line(self):
+        if self.winning_line:
+            pygame.draw.line(screen, GREEN, self.winning_line[0], self.winning_line[1], 5)
 
 
-def draw_winning_line():
-    if winning_line:
-        pygame.draw.line(screen, GREEN, winning_line[0], winning_line[1], 8)
+    def mark_square(self,row, col):
+        # global player
+        self.board[row][col] = self.player   
 
 
-def mark_square(row, col):
-    global player
-    board[row][col] = player   
+    def available_square(self,row, col):
+        return self.board[row][col] == 0
 
 
-def available_square(row, col):
-    return board[row][col] == 0
+    def check_win(self):
 
+        # horizontal
+        horizontal = self.board[:,:-4] + self.board[:,1:-3] + self.board[:,2:-2] + self.board[:,3:-1] + self.board[:,4:]
+        rows, cols = np.where(horizontal == 5 * self.player)
+        if len(rows) > 0:
+            r, c = rows[0], cols[0]
+            self.winning_line = (
+                (X_OFFSET_TTT + c * SQUARESIZE_TTT, Y_OFFSET_TTT + 55 + r * SQUARESIZE_TTT + SQUARESIZE_TTT // 2),
+                (X_OFFSET_TTT + (c + 5) * SQUARESIZE_TTT, Y_OFFSET_TTT + 55 + r * SQUARESIZE_TTT + SQUARESIZE_TTT // 2)
+            )
+            return self.player
 
-def check_win(player):
-    global winning_line
+        # vertical
+        vertical = self.board[:-4,:] + self.board[1:-3,:] + self.board[2:-2,:] + self.board[3:-1,:] + self.board[4:,:]
+        rows, cols = np.where(vertical == 5 * self.player)
+        if len(rows) > 0:
+            r, c = rows[0], cols[0]
+            self.winning_line = (
+                (X_OFFSET_TTT + c * SQUARESIZE_TTT + SQUARESIZE_TTT // 2,Y_OFFSET_TTT + 55 + r * SQUARESIZE_TTT),
+                (X_OFFSET_TTT + c * SQUARESIZE_TTT + SQUARESIZE_TTT // 2,Y_OFFSET_TTT + 55 + (r + 5) * SQUARESIZE_TTT)
+            )
+            return self.player
 
-    # horizontal
-    horizontal = board[:,:-4] + board[:,1:-3] + board[:,2:-2] + board[:,3:-1] + board[:,4:]
-    rows, cols = np.where(horizontal == 5 * player)
-    if len(rows) > 0:
-        r, c = rows[0], cols[0]
-        winning_line = (
-            (c * SQUARE_SIZE, r * SQUARE_SIZE + SQUARE_SIZE // 2),
-            ((c + 5) * SQUARE_SIZE, r * SQUARE_SIZE + SQUARE_SIZE // 2)
-        )
-        return True
+        # diagonal  (top-left to bottom-right)
+        diag_off = self.board[:-4,:-4] + self.board[1:-3,1:-3] + self.board[2:-2,2:-2] + self.board[3:-1,3:-1] + self.board[4:,4:]
+        rows, cols = np.where(diag_off == 5 * self.player)
+        if len(rows) > 0:
+            r, c = rows[0], cols[0]
+            self.winning_line = (
+                (X_OFFSET_TTT + c * SQUARESIZE_TTT,Y_OFFSET_TTT + 55 + r * SQUARESIZE_TTT),
+                (X_OFFSET_TTT + (c + 5) * SQUARESIZE_TTT,Y_OFFSET_TTT + 55 + (r + 5) * SQUARESIZE_TTT)
+            )
+            return self.player
 
-    # vertical
-    vertical = board[:-4,:] + board[1:-3,:] + board[2:-2,:] + board[3:-1,:] + board[4:,:]
-    rows, cols = np.where(vertical == 5 * player)
-    if len(rows) > 0:
-        r, c = rows[0], cols[0]
-        winning_line = (
-            (c * SQUARE_SIZE + SQUARE_SIZE // 2, r * SQUARE_SIZE),
-            (c * SQUARE_SIZE + SQUARE_SIZE // 2, (r + 5) * SQUARE_SIZE)
-        )
-        return True
+        # off diagonal  (top-right to bottom-left)
+        diag_main = self.board[:-4,4:] + self.board[1:-3,3:-1] + self.board[2:-2,2:-2] + self.board[3:-1,1:-3] + self.board[4:,:-4]
+        rows, cols = np.where(diag_main == 5 * self.player)
+        if len(rows) > 0:
+            r, c = rows[0], cols[0]
+            self.winning_line = (
+                (X_OFFSET_TTT + (c + 5) * SQUARESIZE_TTT,Y_OFFSET_TTT + 55 + r * SQUARESIZE_TTT),
+                (X_OFFSET_TTT + c * SQUARESIZE_TTT,Y_OFFSET_TTT + 55 + (r + 5) * SQUARESIZE_TTT)
+            )
+            return self.player
 
-    # diagonal  (top-left to bottom-right)
-    diag_off = board[:-4,:-4] + board[1:-3,1:-3] + board[2:-2,2:-2] + board[3:-1,3:-1] + board[4:,4:]
-    rows, cols = np.where(diag_off == 5 * player)
-    if len(rows) > 0:
-        r, c = rows[0], cols[0]
-        winning_line = (
-            (c * SQUARE_SIZE, r * SQUARE_SIZE),
-            ((c + 5) * SQUARE_SIZE, (r + 5) * SQUARE_SIZE)
-        )
-        return True
-
-    # off diagonal  (top-right to bottom-left)
-    diag_main = board[:-4,4:] + board[1:-3,3:-1] + board[2:-2,2:-2] + board[3:-1,1:-3] + board[4:,:-4]
-    rows, cols = np.where(diag_main == 5 * player)
-    if len(rows) > 0:
-        r, c = rows[0], cols[0]
-        winning_line = (
-            ((c + 5) * SQUARE_SIZE, r * SQUARE_SIZE),
-            (c * SQUARE_SIZE, (r + 5) * SQUARE_SIZE)
-        )
-        return True
-
-    return False
+        return False
 
 
 def main(screen, player1, player2):
-    global game_over, player
+    my_game = TicTacToe()
+    
+
+    # global game_over, player
 
     clock = pygame.time.Clock()
-    game_over = False 
-    player=1 
-
+    # game_over = False  
+    winner,win_color = None,None
     while True:
+
+        ttt_frame(screen,my_game,background,player1,player2,winner,win_color)
         clock.tick(60)
 
+        # --- LINE ---
+        if my_game.winning_line and my_game.game_over:
+            my_game.win_anim_progress = min(1.0,my_game.win_anim_progress+0.05,)
+
+        
+        # --- EVENTS ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -163,26 +120,25 @@ def main(screen, player1, player2):
                 if event.key == pygame.K_ESCAPE:
                     return # exits this game and goes back
 
-            if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
+            if event.type == pygame.MOUSEBUTTONDOWN and not my_game.game_over:
                 mouseX, mouseY = event.pos
-                col = mouseX // SQUARE_SIZE
-                row = mouseY // SQUARE_SIZE
-            
+                if X_OFFSET_TTT<=mouseX<=WIDTH-X_OFFSET_TTT and Y_OFFSET_TTT+30<mouseY<=HEIGHT-20:
+                    col = (mouseX - X_OFFSET_TTT)//SQUARESIZE_TTT
+                    row = (mouseY - 55 - Y_OFFSET_TTT) // SQUARESIZE_TTT
 
-                if available_square(row, col):
-                    mark_square(row, col)
+                    if my_game.available_square(row, col):
+                        my_game.mark_square(row, col)
 
-                    if check_win(player):
-                        game_over = True
+                        if my_game.check_win() == 1:
+                            my_game.game_over = True
+                            winner = player1
+                            win_color = BLUE_RGBA
+                        elif my_game.check_win() == -1:
+                            my_game.game_over = True
+                            winner = player2
+                            win_color = YELLOW
 
-                    player *= -1
-
-        # Drawing
-        screen.blit(background, (0, 0))
-        draw_grid()
-        draw_elements()
-        draw_winning_line()
-        pygame.display.update()
+                        my_game.switch_turns()
 
 
 if __name__ == "__main__":
