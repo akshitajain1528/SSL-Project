@@ -76,7 +76,7 @@ steve_img = pygame.image.load(os.path.join(ASSETS, "steve.png")).convert_alpha()
 
 
 # --- FONT ---
-font_path = os.path.join(ASSETS,'font.otf')
+font_path = os.path.join(ASSETS,'font_modern.otf')
 title_font = pygame.font.Font(font_path,80)
 button_font = pygame.font.Font(font_path,36)
 small_font = pygame.font.Font(font_path,24)
@@ -198,8 +198,8 @@ def main_hub(player1,player2):
     # --- WIREBOXES AROUND IT ---
     box_character_left = pygame.Rect(50,150,200,50)
     box_character_right = pygame.Rect(WIDTH-250,150,200,50)
-    box_left_panel = pygame.Rect(50,250,200,400)
-    box_right_panel = pygame.Rect(WIDTH-250,250,200,400)
+    box_left_panel = pygame.Rect(50,250,250,480)
+    box_right_panel = pygame.Rect(WIDTH-300,250,250,480)
 
 
     # --- BUTTON RECTANGLES: GAME MENU ---
@@ -324,8 +324,7 @@ def main_hub(player1,player2):
             # --- SKETCH BOXES ---
             wireframe_box(screen,box_character_left,"CHARACTER")
             wireframe_box(screen,box_character_right,"CHARACTER")
-            wireframe_box(screen,box_left_panel)
-            wireframe_box(screen,box_right_panel)
+
 
 
             # --- EVENT LISTENERS: START PAGE ---

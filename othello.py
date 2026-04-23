@@ -81,6 +81,29 @@ def switch_possible(row, col, dr, dc, player):
         c += dc
     return False    
 
+# def switch_possible(row, col, dr, dc, player):
+# #har direction (dr,dc) me checks if flip is possible
+#     r = np.arange(row + dr, BOARD_ROWS if dr >= 0 else -1, dr if dr != 0 else 1)
+#     c = np.arange(col + dc, BOARD_COLS if dc >= 0 else -1, dc if dc != 0 else 1)
+
+#     length = min(len(r), len(c))
+#     r = r[:length]
+#     c = c[:length]
+
+#     if length == 0:
+#         return False
+
+#     line = board[r, c]
+
+#     # finding non opponent pieces
+#     not_opponent = np.where(line != -player)[0]
+
+#     if len(not_opponent) == 0:
+#         return False
+
+#     idx = not_opponent[0]
+#     return idx > 0 and line[idx] == player
+
 def switch_pieces(row, col, player):
     # Flip pieces in all 8 directions
     for dr in [-1, 0, 1]:

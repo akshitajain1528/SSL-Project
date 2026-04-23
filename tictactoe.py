@@ -143,35 +143,6 @@ def check_win(player):
     return False
 
 
-
-# def main(screen, player1, player2):
-#     global game_over
-
-#     while True:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 pygame.quit()
-#                 sys.exit()
-
-#             if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
-#                 mouseX, mouseY = event.pos
-#                 col = mouseX // SQUARE_SIZE
-#                 row = mouseY // SQUARE_SIZE
-
-#                 if available_square(row, col):
-#                     mark_square(row, col)
-
-#                     if check_win(g.player):
-#                         game_over = True
-
-#                     g.switch_turns()  
-
-#         screen.blit(background, (0, 0))
-#         draw_grid()
-#         draw_elements()
-#         draw_winning_line()
-#         pygame.display.update()
-
 def main(screen, player1, player2):
     global game_over, player
 
@@ -190,12 +161,13 @@ def main(screen, player1, player2):
             # --- BACK TO HUB ---
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return  # exits this game and goes back
+                    return # exits this game and goes back
 
             if event.type == pygame.MOUSEBUTTONDOWN and not game_over:
                 mouseX, mouseY = event.pos
                 col = mouseX // SQUARE_SIZE
                 row = mouseY // SQUARE_SIZE
+            
 
                 if available_square(row, col):
                     mark_square(row, col)
