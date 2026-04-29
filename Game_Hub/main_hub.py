@@ -117,72 +117,81 @@ GAME_POPULARITY = os.path.join(graphs_folder, 'game_popularity.png')
 TOP_PLAYERS = os.path.join(graphs_folder, 'top_players.png')
 TOP_PLAYERS_OVERALL = os.path.join(graphs_folder,'top_players_overall.png')
     
-ttt=0
-othello=0
-c4=0
 
-
-with open(HISTORY_PATH, "r") as f:
-    player_stats = {}
-    for line in f:
-        if line.strip():
-            user, g, w, l = line.strip().split(',') 
-            if user not in player_stats:
-                player_stats[user] = {"w": 0, "l": 0}
-            player_stats[user]["w"] += int(w)
-            player_stats[user]["l"] += int(l)
-top_players = sorted(player_stats.items(), key=lambda x: x[1]["w"], reverse=True)[:3]
-players = [p[0] for p in top_players]
-wins = [p[1]["w"] for p in top_players]
-
-# HISTORY_PATH = os.path.join(os.path.dirname(BASE_DIR), 'history.csv')
-with open(HISTORY_PATH, "r") as f:
-    for line in f:
-        if line.strip():
-            user, g, w, l = line.strip().split(',')
-            if g == "tictactoe":
-                ttt += int(w) + int(l)
-            elif g == "othello":
-                othello += int(w) + int(l)
-            elif g == "connect4":
-                c4 += int(w) + int(l)
-
-games = ["Tic Tac Toe", "Othello", "Connect 4"]
-plays = [ttt, othello, c4]
 
 
 def refresh_plots():
     global popularity_pie, overall_bar
-    global ttt, othello, c4
-    global games, plays, players, wins 
-
     
-    plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
-    plt.title("Game Popularity")
-    plt.savefig(GAME_POPULARITY)
+    # RESET COUNTERS EVERY TIME WE REFRESH
+    ttt = 0
+    othello = 0
+    c4 = 0
+    player_stats = {}
 
-    plt.close()
+    # READ THE LATEST DATA FROM THE CSV
+    try:
+        with open(HISTORY_PATH, "r") as f:
+            for line in f:
+                if line.strip():
+                    
+                    user, g, w, l = line.strip().split(',') 
+                    
+                    if user not in player_stats:
+                        player_stats[user] = {"w": 0, "l": 0}
+                    player_stats[user]["w"] += int(w)
+                    player_stats[user]["l"] += int(l)
 
+                    if g == "tictactoe":
+                        ttt += int(w) + int(l)
+                    elif g == "othello":
+                        othello += int(w) + int(l)
+                    elif g == "connect4":
+                        c4 += int(w) + int(l)
+    except FileNotFoundError:
+        pass # IF FILE EMPTY, DRAW EMPTY GRAPH
 
+    # RECALCULATE THE TOP PLAYERS
+    top_players = sorted(player_stats.items(), key=lambda x: x[1]["w"], reverse=True)[:3]
+    players = [p[0] for p in top_players]
+    wins = [p[1]["w"] for p in top_players]
 
     games = ["Tic Tac Toe", "Othello", "Connect 4"]
     plays = [ttt, othello, c4]
+
+
+    # ==========================================
+    # 4. GENERATE THE MATPLOTLIB GRAPHS
+    # ==========================================
     
-    plt.bar(players, wins, color=['green', 'blue', 'red'])
+    # Create a fresh canvas for the Pie Chart
+    plt.figure() 
+    
+    # Only draw the pie chart if games have actually been played
+    if sum(plays) > 0:
+        plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
+    plt.title("Game Popularity")
+    plt.savefig(GAME_POPULARITY)
+    plt.close()
+
+    # Create a fresh canvas for the Bar Chart
+    plt.figure() 
+    if len(players) > 0:
+        plt.bar(players, wins, color=['green', 'blue', 'red'])
     plt.title("Top Players by Total Wins")
     plt.xlabel("Players")
     plt.ylabel("Wins")
-    plt.savefig(TOP_PLAYERS_OVERALL)
-
     plt.savefig(TOP_PLAYERS)
     plt.close()
 
+    # ==========================================
+    # 5. LOAD THE NEW IMAGES INTO PYGAME
+    # ==========================================
     popularity_pie = pygame.image.load(GAME_POPULARITY).convert_alpha()
     overall_bar = pygame.image.load(TOP_PLAYERS).convert_alpha()
 
     popularity_pie = pygame.transform.scale(popularity_pie, (500, 400))
     overall_bar = pygame.transform.scale(overall_bar, (500, 400))
-    pygame.display.flip()
 
 # ==========================
 #      MAIN LOOP AAGE 
@@ -493,7 +502,7 @@ def main_hub(player1,player2):
 
             elif res == "GO_TO_LEADERBOARD":
                 current_state="LEADERBOARD"
-                
+
 
             elif res == "STARTAGAIN":
                 current_state="CONNECT4"
@@ -505,6 +514,7 @@ def main_hub(player1,player2):
                 loser = player2 if res == player1 else player1
                 os.system(f'bash leaderboard.sh update connect4 "{res}" "{loser}" false')
                 refresh_plots()
+                current_state="GAME_MENU"
         
     # =====================================
     #               OTHELLO
@@ -530,10 +540,11 @@ def main_hub(player1,player2):
                 loser = player2 if res == player1 else player1
                 os.system(f'bash leaderboard.sh update othello "{res}" "{loser}" false')
                 refresh_plots()
+                current_state="GAME_MENU"
 
 
     # =====================================
-    #               TIC TAC TOE
+    #            TIC TAC TOE
     # =====================================
 
         elif current_state=="TICTACTOE":
@@ -556,6 +567,7 @@ def main_hub(player1,player2):
                 loser = player2 if res == player1 else player1
                 os.system(f'bash leaderboard.sh update tictactoe "{res}" "{loser}" false')
                 refresh_plots()
+                current_state="GAME_MENU"
 
 
     # ====================================
