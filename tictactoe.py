@@ -27,11 +27,6 @@ class TicTacToe(Game):
         self.win_anim_progress = 0.0
 
 
-    def draw_winning_line(self):
-        if self.winning_line:
-            pygame.draw.line(screen, GREEN, self.winning_line[0], self.winning_line[1], 5)
-
-
     def mark_square(self,row, col):
         # global player
         self.board[row][col] = self.player   
@@ -87,10 +82,13 @@ class TicTacToe(Game):
             )
             return self.player
 
-        return False
+        elif self.is_full():
+            return 0
+        
+        return None
 
 
-def main(screen, player1, player2):
+def main(screen, player1, player2,avatar_left,avatar_right):
     my_game = TicTacToe()
     
 
@@ -98,15 +96,15 @@ def main(screen, player1, player2):
 
     clock = pygame.time.Clock()
     # game_over = False  
-    winner,win_color = None,None
+    winner,win_color,win_avatar = None,None,None
     while True:
 
-        ttt_frame(screen,my_game,background,player1,player2,winner,win_color)
+        ttt_frame(screen,my_game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar)
         clock.tick(60)
 
         # --- LINE ---
         if my_game.winning_line and my_game.game_over:
-            my_game.win_anim_progress = min(1.0,my_game.win_anim_progress+0.05,)
+            my_game.win_anim_progress = min(1.0,my_game.win_anim_progress+0.03,)
 
         
         # --- EVENTS ---
@@ -133,10 +131,17 @@ def main(screen, player1, player2):
                             my_game.game_over = True
                             winner = player1
                             win_color = BLUE_RGBA
+                            win_avatar = avatar_left
                         elif my_game.check_win() == -1:
                             my_game.game_over = True
                             winner = player2
                             win_color = YELLOW
+                            win_avatar = avatar_right
+
+                        elif my_game.check_win() == 0:
+                            my_game.game_over = True
+                            winner = "Tie"
+                            win_color = RED_RGBA
 
                         my_game.switch_turns()
 

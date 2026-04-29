@@ -12,7 +12,11 @@ from game import Game
 # --- BACKGROUND ---
 c4_bg_path = os.path.join(ASSETS,'connect4_bg.jpeg')
 c4_bg_img = pygame.image.load(c4_bg_path).convert()
-c4_GAME_BG = pygame.transform.scale(c4_bg_img,(WIDTH,HEIGHT))
+C4_GAME_BG = pygame.transform.scale(c4_bg_img,(WIDTH,HEIGHT))
+
+c4_pause_bg = os.path.join(ASSETS,'pause_c4.PNG')
+c4_pause_bg = pygame.image.load(c4_pause_bg).convert()
+C4_PAUSE_BG = pygame.transform.scale(c4_pause_bg,(WIDTH,HEIGHT))
 
 
 class Connect4(Game):
@@ -38,56 +42,65 @@ class Connect4(Game):
     
 
     def check_win(self):
-        # horizontal
+        # --- HORIZONTAL ---
         horizontal = self.board[:,:-3] + self.board[:,1:-2] + self.board[:,2:-1] + self.board[:,3:]
         if np.any(horizontal == 4): return 1
         if np.any(horizontal == -4): return -1
 
 
-        #vertical
+        #--- VERTICAL ---
         vertical = self.board[:-3,:] + self.board[1:-2,:] + self.board[2:-1,:] + self.board[3:,:]
         if np.any(vertical == 4): return 1
         if np.any(vertical == -4): return -1
 
-        #off-diagonal
+        # ---  OFF-DIAGONAL ---
         diag_off = self.board[:-3,:-3] + self.board[1:-2,1:-2] + self.board[2:-1,2:-1] + self.board[3:,3:]
         if np.any(diag_off == 4): return 1
         if np.any(diag_off == -4): return -1
 
-        #main-diagonal
+        # --- MAIN-DIAGONAL
         diag_main = self.board[:-3,3:] + self.board[2:-1,1:-2] + self.board[1:-2,2:-1] + self.board[3:,:-3]
         if np.any(diag_main == 4): return 1
         if np.any(diag_main == -4): return -1
 
-        return 0
+        # --- TIE ---
+        elif self.is_full():
+            return 0
+
+        return None
 
 
 
 # --- MAIN FUNCTION ---
-def main(screen,player1,player2):
+def main(screen,player1,player2,avatar_left,avatar_right):
 
 
     my_game = Connect4()
-    win_font = pygame.font.SysFont("monospace", 75)
-    winner = None
-    win_color = None
-
     clock = pygame.time.Clock()
 
     # --- ANIMATION & WIN VARIABLES ---
     is_anim,anim_col,anim_target_row,anim_y,anim_player = False,0,0,0,0
     DROP_SPEED = 30
-    win_data = (None,None)
-    
+    win_data = (None,None,None)
+    running = True
+
+    # ---  BACK AND MENU BUTTONS ---
+    back_button = pygame.Rect(50,50,150,60)
+    gm_menu_button = pygame.Rect(WIDTH//2 - 150, HEIGHT//2, 300, 50)
+    resume_button = pygame.Rect(WIDTH//2 - 150, HEIGHT//2 + 70, 300, 50)
+
+    is_paused = False
+    mx,my = pygame.mouse.get_pos()
+    back_hovering = back_button.collidepoint((mx,my))
 
 
-    while not my_game.game_over:
+    while running:
 
         clock.tick(60)
+        
 
-        # game_window(my_game,screen,player1,player2,winner,win_color)
         anim_state = (is_anim,anim_col,anim_y,anim_player)
-        connect4_frame(screen,my_game,player1,player2,c4_GAME_BG,anim_state,win_data)
+        connect4_frame(screen,my_game,player1,player2,avatar_left,avatar_right,C4_GAME_BG,anim_state,win_data)
 
 
         # --- EVENTS : CONNECT4 ---
@@ -100,25 +113,32 @@ def main(screen,player1,player2):
                 if event.key == pygame.K_ESCAPE:
                     return
             
-            if event.type == pygame.MOUSEBUTTONDOWN and not is_anim:
-                posx = event.pos[0]
-                posy = event.pos[1]
-                hover_row = int((posy-Y_OFFSET_C4)//SQUARESIZE_C4)
-                sprite_y = Y_OFFSET_C4 + (hover_row*SQUARESIZE_C4) + 10
+            if is_paused:
+                if gm_menu_button.collidepoint((mx,my)):
+                    return
+                elif resume_button.collidepoint((mx,my)):
+                    is_paused = False
+            
+            else:
+                if back_button.collidepoint((mx,my)):
+                    is_paused = True
+                
+                elif event.type == pygame.MOUSEBUTTONDOWN and not is_anim and not my_game.game_over:
+
+                    hover_row = int((my-Y_OFFSET_C4)//SQUARESIZE_C4)
+                    sprite_y = Y_OFFSET_C4 + (hover_row*SQUARESIZE_C4) + 10
 
 
-                if posx>=X_OFFSET_C4 and posx<=X_OFFSET_C4+BOARD_WIDTH_C4:
-                    col = int(math.floor((posx-X_OFFSET_C4)/SQUARESIZE_C4))
-                    row = my_game.get_available_row(col)
+                    if mx>=X_OFFSET_C4 and mx<=X_OFFSET_C4+BOARD_WIDTH_C4:
+                        col = int(math.floor((mx-X_OFFSET_C4)/SQUARESIZE_C4))
+                        row = my_game.get_available_row(col)
 
-                if row is not None:
-                    is_anim = True
-                    anim_col,anim_target_row,anim_player = col,row,my_game.player
-                    anim_y = sprite_y
+                        if row is not None:
+                            is_anim = True
+                            anim_col,anim_target_row,anim_player = col,row,my_game.player
+                            anim_y = sprite_y
 
-                else:
-                    label = win_font.render("Select some other column.",1,BLUE_RGBA)
-                    screen.blit(label,(40,10))
+
 
         if is_anim:
             target_y = Y_OFFSET_C4 + (anim_target_row*SQUARESIZE_C4)
@@ -133,11 +153,15 @@ def main(screen,player1,player2):
 
                 if my_game.check_win() == 1:
                     my_game.game_over = True
-                    win_data = (player1,BLUE_RGBA)
+                    win_data = (player1,BLUE_RGBA,avatar_left)
 
                 elif my_game.check_win() == -1:
                     my_game.game_over = True
-                    win_data(player2,RED_RGBA)
+                    win_data = (player2,RED_RGBA,avatar_right)
+
+                elif my_game.check_win() == 0:
+                    my_game.game_over = True
+                    win_data = ("Tie",YELLOW,None)
 
                 my_game.switch_turns()
 

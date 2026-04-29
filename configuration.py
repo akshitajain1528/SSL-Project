@@ -24,9 +24,9 @@ HEIGHT = 800
 SQUARESIZE_C4 = 100
 
 # --- CONNECT 4 DIMENSIONS ---
-ROWS_C4 = 6
+ROWS_C4 = 7
 COLUMNS_C4 = 7
-SQUARESIZE_C4 = 100
+SQUARESIZE_C4 = 90
 RADIUS_C4 = SQUARESIZE_C4//2 - 10
 BOARD_WIDTH_C4 = COLUMNS_C4*SQUARESIZE_C4
 BOARD_HEIGHT_C4 = ROWS_C4*SQUARESIZE_C4
@@ -41,9 +41,23 @@ X_OFFSET_TTT = (WIDTH - SQUARESIZE_TTT*COLS_TTT)//2
 Y_OFFSET_TTT = (HEIGHT - SQUARESIZE_TTT*ROWS_TTT)//2
 
 
-
 # --- PATHS ---
 BASE_DIR = os.path.dirname(__file__)
 ASSETS = os.path.join(BASE_DIR,'Assets_MC')
 
 
+
+# --- CHARACTERS ---
+CHAR_IMAGES_L = {
+"zombie" : pygame.image.load(os.path.join(ASSETS, "zombie.png")).convert_alpha(),
+"pig" : pygame.image.load(os.path.join(ASSETS, "pig.png")).convert_alpha(),
+"dog" : pygame.image.load(os.path.join(ASSETS, "dog.png")).convert_alpha(),
+"steve" : pygame.image.load(os.path.join(ASSETS, "steve.png")).convert_alpha(),
+}
+
+CHAR_IMAGES_R = {
+"zombie" : pygame.image.load(os.path.join(ASSETS, "zombie_r.png")).convert_alpha(),
+"pig" : pygame.image.load(os.path.join(ASSETS, "pig_r.png")).convert_alpha(),
+"dog" : pygame.image.load(os.path.join(ASSETS, "dog_r.png")).convert_alpha(),
+"steve" : pygame.image.load(os.path.join(ASSETS, "steve_r.png")).convert_alpha(),
+}

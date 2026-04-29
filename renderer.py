@@ -18,17 +18,8 @@ small_font = pygame.font.Font(font_modern,24)
 medium_font = pygame.font.Font(font_modern,36)
 
 
-# --- BACKGROUND ---
-# c4_bg_path = os.path.join(ASSETS,'connect4_bg.jpeg')
-# c4_bg_img = pygame.image.load(c4_bg_path).convert()
-# c4_GAME_BG = pygame.transform.scale(c4_bg_img,(WIDTH,HEIGHT))
-
-
 # --- ASSET LOADING ---
-zombie_img = pygame.image.load(os.path.join(ASSETS, "zombie.png")).convert_alpha()
-pig_img = pygame.image.load(os.path.join(ASSETS, "pig.png")).convert_alpha()
-dog_img = pygame.image.load(os.path.join(ASSETS, "dog.png")).convert_alpha()
-steve_img = pygame.image.load(os.path.join(ASSETS, "steve.png")).convert_alpha()
+
 
 
 p1_img = pygame.image.load(os.path.join(ASSETS,'diamond.png')).convert_alpha()
@@ -113,12 +104,6 @@ def image_button(screen, rect, image, is_hovering):
         border_color = WHITE
         pygame.draw.rect(screen, border_color, rect, width=4)
 
-    # --- Draw base UI grey block ---
-    # overlay = pygame.Surface((rect.width, rect.height))
-    # overlay.set_alpha(200)
-    # overlay.fill(UI_GREY)
-    # screen.blit(overlay, (rect.x, rect.y))
-    
 
     # --- Resize image to fit button ---
     img = pygame.transform.scale(image, (rect.width - 10, rect.height - 10))
@@ -137,9 +122,9 @@ def wireframe_box(screen,rect,text=""):
         screen.blit(label, label.get_rect(center=rect.center))
 
 
-def connect4_frame(screen,game,player1,player2,bg_img,anim_state,win_data):
+def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,anim_state,win_data):
     is_anim,anim_col,anim_y,anim_player = anim_state
-    winner,win_color = win_data
+    winner,win_color,win_avatar = win_data
 
     mx,my = pygame.mouse.get_pos()
 
@@ -151,6 +136,21 @@ def connect4_frame(screen,game,player1,player2,bg_img,anim_state,win_data):
     overlay.set_alpha(70)
     screen.blit(overlay,(X_OFFSET_C4-20,Y_OFFSET_C4-20))
 
+    # --- CHARACTERS ---
+    rect_left = pygame.Rect(50,150,200,50)
+    rect_right = pygame.Rect(WIDTH-250,150,200,50)
+    wireframe_box(screen, rect_left, "AVATAR")
+    wireframe_box(screen, rect_right, "AVATAR")
+    
+    avatar = pygame.transform.scale(CHAR_IMAGES_L[avatar_left], (200, 200)) 
+    screen.blit(avatar, (50,300))
+    avatar = pygame.transform.scale(CHAR_IMAGES_R[avatar_right], (200, 200)) 
+    screen.blit(avatar, (WIDTH-250,300))
+
+    # --- BACK BUTTON ---
+
+    # menu_button(screen, back_button, "BACK",back_hovering ,fontstyle=button_font,)
+    
 
     # --- TEXT ---
     text_with_shadow(screen,'CONNECT 4',title_font,WIDTH//2,50,WHITE)
@@ -165,8 +165,8 @@ def connect4_frame(screen,game,player1,player2,bg_img,anim_state,win_data):
     if not is_anim and not game.game_over and (X_OFFSET_C4 <= mx <= X_OFFSET_C4 + BOARD_WIDTH_C4) and (Y_OFFSET_C4 <= my <= Y_OFFSET_C4 + BOARD_HEIGHT_C4):
         hover_col = int((mx-X_OFFSET_C4)//SQUARESIZE_C4)
         hover_row = int((my-Y_OFFSET_C4)//SQUARESIZE_C4)
-        sprite_x = X_OFFSET_C4 + (hover_col*SQUARESIZE_C4) + 5
-        sprite_y = Y_OFFSET_C4 + (hover_row*SQUARESIZE_C4) + 5
+        sprite_x = X_OFFSET_C4 + (hover_col*SQUARESIZE_C4) + 3
+        sprite_y = Y_OFFSET_C4 + (hover_row*SQUARESIZE_C4)
         ghost = P1_GHOST if game.player ==1 else P2_GHOST
         screen.blit(ghost,(sprite_x, sprite_y))
 
@@ -186,35 +186,61 @@ def connect4_frame(screen,game,player1,player2,bg_img,anim_state,win_data):
             # Static pieces
             piece = game.board[r, c]
             if piece == 1:
-                screen.blit(P1_SPRITE, (x + 5, y +5))
+                screen.blit(P1_SPRITE, (x + 3, y))
             elif piece == -1:
-                screen.blit(P2_SPRITE, (x + 5, y + 5))
+                screen.blit(P2_SPRITE, (x+3, y))
 
-            pygame.draw.rect(grid_layer,(0,0,0,150),(x,y,SQUARESIZE_C4,SQUARESIZE_C4),3)
-            # pygame.draw.circle(grid_layer,BORDER_RGBA,(x+50,y+50),40)
+            pygame.draw.rect(grid_layer,(0,0,0,150),(x,y,SQUARESIZE_C4,SQUARESIZE_C4),2)
 
     screen.blit(grid_layer,(0,0))
+
+    # --- WINNNING TEXT ---
 
     if game.game_over:
         banner = pygame.Surface((WIDTH, 150))
         banner.set_alpha(220)
         banner.fill(BLACK)
         screen.blit(banner, (0, HEIGHT//2 - 75))
-    
-        text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
-        text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+
+        if winner == player1:
+            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
+            avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+            screen.blit(avatar, (50,200))
+        
+        if winner == player2:
+            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-210, HEIGHT//2 + 40, WHITE)
+            avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+            screen.blit(avatar, (WIDTH-490,200))
+        
+        elif winner == "Tie":
+            text_with_shadow(screen, f"It's a TIE", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
 
     pygame.display.update()
 
 
-def ttt_frame(screen,game,background,player1,player2,winner,win_color):
+def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar):
 
     # --- BACKGROUND ---
     screen.blit(background,(0,0))
     board = pygame.Surface((SQUARESIZE_TTT*COLS_TTT+50,SQUARESIZE_TTT*ROWS_TTT+50),pygame.SRCALPHA)
     board.fill(C_YELLOW)
-    board.set_alpha(50)
+    board.set_alpha(140)
     screen.blit(board,(X_OFFSET_TTT-25,Y_OFFSET_TTT+30))
+
+    # --- CHARACTERS ---
+    rect_left = pygame.Rect(50,150,200,50)
+    rect_right = pygame.Rect(WIDTH-250,150,200,50)
+    wireframe_box(screen, rect_left, "AVATAR")
+    wireframe_box(screen, rect_right, "AVATAR")
+    
+    avatar = pygame.transform.scale(CHAR_IMAGES_L[avatar_left], (200, 200)) 
+    screen.blit(avatar, (50,300))
+    avatar = pygame.transform.scale(CHAR_IMAGES_R[avatar_right], (200, 200)) 
+    screen.blit(avatar, (WIDTH-250,300))
+
 
     # --- TEXT ---
     text_with_shadow(screen,"TIC TAC TOE",title_font,WIDTH//2,50,WHITE)
@@ -226,9 +252,10 @@ def ttt_frame(screen,game,background,player1,player2,winner,win_color):
             text_with_shadow(screen,f"{player2}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,105,YELLOW,BLACK)
 
     mx,my = pygame.mouse.get_pos()
-    if not game.game_over and (X_OFFSET_TTT <= mx <= WIDTH - X_OFFSET_TTT) and (Y_OFFSET_TTT + 55 <= my <= HEIGHT - 20):
-        hover_col = int((mx-X_OFFSET_TTT)//SQUARESIZE_TTT)
-        hover_row = int((my-Y_OFFSET_TTT-55)//SQUARESIZE_TTT)
+    hover_col = int((mx-X_OFFSET_TTT)//SQUARESIZE_TTT)
+    hover_row = int((my-Y_OFFSET_TTT-55)//SQUARESIZE_TTT)
+    if not game.game_over and (0<=hover_row<=9) and (0<=hover_col<=9):
+
         sprite_x = X_OFFSET_TTT + (hover_col*SQUARESIZE_TTT) + 5
         sprite_y = Y_OFFSET_TTT + (hover_row*SQUARESIZE_TTT) + 60
         ghost = SWORD_GHOST if game.player == 1 else APPLE_GHOST
@@ -250,39 +277,52 @@ def ttt_frame(screen,game,background,player1,player2,winner,win_color):
             elif piece == -1:
                 screen.blit(APPLE_SPRITE,(x+5,y+5))
 
-            pygame.draw.rect(grid_layer,C_YELLOW,(x,y,SQUARESIZE_TTT,SQUARESIZE_TTT),1)
+            pygame.draw.rect(grid_layer,(166, 41, 0),(x,y,SQUARESIZE_TTT,SQUARESIZE_TTT),2)
     
     screen.blit(grid_layer,(0,0))
 
-    if game.game_over:
+    if game.game_over and game.win_anim_progress==1:
         banner = pygame.Surface((WIDTH, 150))
         banner.set_alpha(220)
         banner.fill(BLACK)
         screen.blit(banner, (0, HEIGHT//2 - 75))
     
-        text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
-        text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+        if winner == player1:
+            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
+            avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+            screen.blit(avatar, (50,200))
+
+        elif winner == player2:
+            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
+            avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+            screen.blit(avatar, (WIDTH-490,200))
+        
+        elif winner == "Tie":
+            text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
 
 
-        if game.winning_line:
-            start_pos, end_pos = game.winning_line
+    if game.game_over and game.winning_line and not game.win_anim_progress == 1:
+        start_pos, end_pos = game.winning_line
+        
+        distance = math.hypot(end_pos[0] - start_pos[0], end_pos[1] - start_pos[1])
+        
+        # Determine how many blocky particles to draw based on current animation progress
+        total_particles = int(distance / 15) # One block every 15 pixels
+        current_particles = int(total_particles * game.win_anim_progress)
+        
+        for i in range(current_particles):
+            t = i / max(1, total_particles)
+            px = start_pos[0] + (end_pos[0] - start_pos[0]) * t
+            py = start_pos[1] + (end_pos[1] - start_pos[1]) * t
             
-            distance = math.hypot(end_pos[0] - start_pos[0], end_pos[1] - start_pos[1])
-            
-            # Determine how many blocky particles to draw based on current animation progress
-            total_particles = int(distance / 15) # One block every 15 pixels
-            current_particles = int(total_particles * game.win_anim_progress)
-            
-            for i in range(current_particles):
-                t = i / max(1, total_particles)
-                px = start_pos[0] + (end_pos[0] - start_pos[0]) * t
-                py = start_pos[1] + (end_pos[1] - start_pos[1]) * t
-                
-                # Draw a blocky Redstone Square
-                # rect = pygame.Rect(0, 0, 14, 14)
-                center = (px, py)
-                # pygame.draw.rect(screen, (255, 85, 85), rect) # Glowing Red center
-                # pygame.draw.rect(screen, (170, 0, 0), rect, 3) # Dark Red border
-                screen.blit(REDSTONE_SPRITE,center)
+            # Draw a blocky Redstone Square
+            # rect = pygame.Rect(0, 0, 14, 14)
+            center = (px, py)
+            # pygame.draw.rect(screen, (255, 85, 85), rect) # Glowing Red center
+            # pygame.draw.rect(screen, (170, 0, 0), rect, 3) # Dark Red border
+            screen.blit(REDSTONE_SPRITE,center)
 
     pygame.display.update()
