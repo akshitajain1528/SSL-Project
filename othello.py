@@ -87,6 +87,7 @@ class Othello(Game):
         return None  # game not over
 
 
+
 def main(screen, player1, player2, avatar_left, avatar_right, is_league=False):
     my_game = Othello()
     clock = pygame.time.Clock()

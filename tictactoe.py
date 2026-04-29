@@ -88,6 +88,7 @@ class TicTacToe(Game):
         return None
 
 
+
 def main(screen, player1, player2, avatar_left, avatar_right, is_league=False):
     my_game = TicTacToe()
     clock = pygame.time.Clock()
