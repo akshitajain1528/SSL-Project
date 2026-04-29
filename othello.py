@@ -158,7 +158,7 @@ def main(screen, player1, player2,avatar_left,avatar_right,is_league=False):
                 if my_game.game_over and is_league and hover:
                     return winner
 
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and not my_game.game_over:
                 if event.key == pygame.K_ESCAPE:
                     is_paused = True
                     # return winner
@@ -220,9 +220,6 @@ def main(screen, player1, player2,avatar_left,avatar_right,is_league=False):
                 winner = "draw"            
                 win_color = (255, 255, 255) 
                 win_avatar = None
-
-        if my_game.game_over:
-            return winner
         
         # if display_message:
         #     current_time = pygame.time.get_ticks()
