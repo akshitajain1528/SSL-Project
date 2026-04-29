@@ -155,9 +155,8 @@ def refresh_plots():
     
     plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
     plt.title("Game Popularity")
-    plt.savefig("game_popularity.png")
+    plt.savefig("Graphs/game_popularity.png")
 
-    plt.savefig("game_popularity.png")
     plt.close()
 
 
@@ -169,13 +168,13 @@ def refresh_plots():
     plt.title("Top Players by Total Wins")
     plt.xlabel("Players")
     plt.ylabel("Wins")
-    plt.savefig("top_players_overall.png")
+    plt.savefig("Graphs/top_players_overall.png")
 
-    plt.savefig("top_players.png")
+    plt.savefig("Graphs/top_players.png")
     plt.close()
 
-    popularity_pie = pygame.image.load("game_popularity.png").convert_alpha()
-    overall_bar = pygame.image.load("top_players.png").convert_alpha()
+    popularity_pie = pygame.image.load("Graphs/game_popularity.png").convert_alpha()
+    overall_bar = pygame.image.load("Graphs/top_players.png").convert_alpha()
 
     popularity_pie = pygame.transform.scale(popularity_pie, (500, 400))
     overall_bar = pygame.transform.scale(overall_bar, (500, 400))

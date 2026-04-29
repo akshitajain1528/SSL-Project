@@ -49,8 +49,8 @@ X_OFFSET_OTHELLO = (WIDTH - SQUARESIZE_OTHELLO*COLS_OTHELLO)//2
 Y_OFFSET_OTHELLO = (HEIGHT - SQUARESIZE_OTHELLO*ROWS_OTHELLO)//2    
 
 # --- PATHS ---
-BASE_DIR = os.path.dirname(__file__)
-ASSETS = os.path.join(BASE_DIR,'Assets_MC')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS = os.path.join(os.path.dirname(BASE_DIR),'Assets_MC')
 
 
 

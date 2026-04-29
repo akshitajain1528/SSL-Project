@@ -1,6 +1,6 @@
 import pygame
-from renderer import wireframe_box,image_button,menu_button
-from configuration import *
+from Core.renderer import wireframe_box,image_button,menu_button
+from Core.configuration import *
 
 
 

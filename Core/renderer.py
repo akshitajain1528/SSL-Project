@@ -1,7 +1,7 @@
 import pygame
 import os
 import math
-from configuration import *
+from Core.configuration import *
 import sys
 
 # --- FONTS ---
