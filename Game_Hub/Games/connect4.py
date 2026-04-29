@@ -89,9 +89,10 @@ def main(screen,player1,player2,avatar_left,avatar_right,is_league=False):
     gm_menu_button = pygame.Rect(WIDTH//2 - 350, HEIGHT//2, 300, 50)
     resume_button = pygame.Rect(WIDTH//2 - 350, HEIGHT//2 + 70, 300, 50)
 
-    # --- PLAY AGAIN & LEADERBOARDS BUTTON ---
+    # --- PLAY AGAIN, LEADERBOARDS AND SAVE GAME BUTTON ---
     btn_start_again = pygame.Rect(WIDTH//2 - 150 , HEIGHT - 280, 300, 50)
     btn_leaderboard = pygame.Rect(WIDTH//2 - 150, HEIGHT - 210, 300, 50)
+    btn_save_game = pygame.Rect(WIDTH//2 - 150, HEIGHT - 140, 300, 50)
 
     is_paused = False
 
@@ -119,13 +120,15 @@ def main(screen,player1,player2,avatar_left,avatar_right,is_league=False):
             resume = resume_button.collidepoint((mx, my))
             menu_button(screen, resume_button, "BACK TO GAME", resume, small_font)
 
-        # --- PLAY AGAIN & LEADERBOARDS BUTTON ---
+        # --- PLAY AGAIN , LEADERBOARDS AND SAVE GAME BUTTON ---
         h_start_button = btn_start_again.collidepoint((mx,my))
         h_game_leaderboard = btn_leaderboard.collidepoint((mx,my))
+        h_save_game = btn_save_game.collidepoint((mx,my))
 
         if my_game.game_over:
             menu_button(screen,btn_start_again,"START AGAIN",h_start_button,small_font)
             menu_button(screen,btn_leaderboard,"LEADERBOARD",h_game_leaderboard,small_font)
+            menu_button(screen,btn_save_game,"SAVE GAME",h_save_game,small_font)
 
         if my_game.game_over and is_league:
             btn_text = "SHOW RESULTS" if "othello" in sys.modules[__name__].__file__ else "NEXT GAME"
@@ -168,6 +171,8 @@ def main(screen,player1,player2,avatar_left,avatar_right,is_league=False):
                         return "GO_TO_LEADERBOARD"
                     if h_start_button:
                         return "STARTAGAIN"
+                    if h_save_game:
+                        return win_data[0]
 
                 
                 elif event.type == pygame.MOUSEBUTTONDOWN and not is_anim and not my_game.game_over:

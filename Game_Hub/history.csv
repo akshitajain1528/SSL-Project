@@ -1,8 +1,11 @@
-Alex,connect4,18,3
+Alex,connect4,18,4
 Steve,tictactoe,22,6
 aagam,tictactoe,1,0
-Steve,connect4,3,17
+Maulik,connect4,2,0
+Steve,connect4,4,17
 Steve,othello,8,6
-akshita,tictactoe,0,1
+akshita,tictactoe,0,2
+maulik,tictactoe,1,0
 Alex,othello,6,8
 Alex,tictactoe,6,22
+akshita,connect4,0,2

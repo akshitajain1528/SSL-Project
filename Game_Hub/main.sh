@@ -107,4 +107,4 @@ done
 
 
 # --- PYTHON ---
-python3 game.py ${PLAYER1} ${PLAYER2}
+python3 main_hub.py ${PLAYER1} ${PLAYER2}

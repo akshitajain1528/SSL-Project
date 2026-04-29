@@ -493,6 +493,7 @@ def main_hub(player1,player2):
 
             elif res == "GO_TO_LEADERBOARD":
                 current_state="LEADERBOARD"
+                
 
             elif res == "STARTAGAIN":
                 current_state="CONNECT4"
