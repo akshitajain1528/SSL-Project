@@ -69,4 +69,108 @@ With the engine running, we will implement Tic-Tac-Toe, Othello, and Connect Fou
 * **Phase 4: Analytics & Final Documentation**
 The final phase involves logging match results to history.csv, creating the leaderboard.sh stats parser, and generating Matplotlib visualizations. We will conclude with the LaTeX report and Makefile.
 
+## FINAL WORKING OF THE PROJECT
+
+## STRUCTURE
+ 
+├── Game_HUB/
+│   ├── Assets_MC  
+│   ├── Games/
+│   │   ├── tictactoe.py  
+│   │   ├── connect4.py 
+│   │   └── othello.py
+│   ├── Core/
+│   │   ├── characters.py  
+│   │   ├── configuration.py 
+│   │   ├── league.py
+│   │   └── renderer.py
+│   ├── Graphs/
+│   │   ├── overall_top_players.png
+│   │   └── popularity.png
+│   ├── main.sh
+│   ├── leaderboard.sh
+│   ├── history.csv
+│   ├── users.tsv
+│   └── main_hub.py
+└── Documentation/
+    ├── report.tex 
+    ├── gamecraft report.pdf  
+    ├── makefile 
+    └── figures/ 
+
+## How to Run the Project
+
+1. Make scripts executable:
+```bash
+chmod +x main.sh leaderboard.sh
+```
+
+2. Run the program:
+```bash
+bash main.sh
+```
+
+3. Enter usernames and passwords when prompted.
+
+4. if new username, register.
+
+5. Select characters for both players.  
+
+6. Select a game from the menu and play.
+
+7. Use the league option to have a competitive league of 3 back to back games.
+
+8. Take a look at the leaderboard and statistics.
+
+## Requirements
+
+- Python 3
+- pygame
+- numpy
+- matplotlib
+- os
+- time
+- datetime
+- sys
+
+## System Design
+
+* `main.sh` → Handles secure login/registration using SHA and launches the game engine successfully.
+* `game.py` → Controls the basic game class, the game menu and gameplay, all major events and clicks on buttons 
+* `leaderboard.sh` → Processes game history and displays leaderboard when specific options and sorting option chosen in the leaderboard window.
+* `games/` → Contains implementations of individual games- othello, tictactoe, connect4.
+* `users.tsv` → Stores user credentials.
+* `history.csv` → Stores game results (winner, loser, game, date).
+
+## Leaderboard
+
+- Reads data from history.csv
+- Calculates wins, losses, and win/loss ratio per player
+- displayed on terminal but options to choose and sort on GUI
+- Supports sorting by:
+  - Wins
+  - Losses
+  - w/l Ratio
+
+## Statistics
+
+After each game:
+- Bar chart of top 3 player by wins
+- Pie chart of most popular games 
+
+Charts are generated using matplotlib and displayed in the GUI.
+
+## Notes
+
+- Passwords are hashed using SHA-256
+- No absolute paths are used; project runs on any system
+
+## Authors
+
+- Maulik Jain (25b1002)
+- Akshita Jain (25b0999)
+
+
+
+
 
