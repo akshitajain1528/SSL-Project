@@ -6,7 +6,7 @@ import math
 
 from Core.configuration import *
 from Core.renderer import *
-from game import Game
+from main_hub import Game
 
 
 # --- BACKGROUND ---

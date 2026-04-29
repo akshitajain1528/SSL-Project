@@ -53,7 +53,6 @@ from Core.renderer import *
 from Core.characters import *
 from Core.league import *
 
-ASSETS = 'Assets_MC'
 
 # --- Load the BG ---
 bg_path = os.path.join(ASSETS,'minecraft_bg.png')
@@ -73,14 +72,15 @@ click_sound = pygame.mixer.Sound(click_path)
 
 # popularity_pie = None
 # overall_bar = None
-
+HISTORY_PATH = os.path.join(os.path.dirname(BASE_DIR), 'history.csv')
 
 def update_history(game_id, winner, loser, is_draw=False):
     history = {}
     
     # 1. Load existing data
-    if os.path.exists("history.csv"):
-        with open("history.csv", "r") as f:
+
+    if os.path.exists(HISTORY_PATH):
+        with open(HISTORY_PATH, "r") as f:
             for line in f:
                 if line.strip():
                     user, g, w, l = line.strip().split(',')
@@ -98,7 +98,7 @@ def update_history(game_id, winner, loser, is_draw=False):
         history[loss_key]["l"] += 1
 
     # 3. Write it all back cumulatively!
-    with open("history.csv", "w") as f:
+    with open(HISTORY_PATH, "w") as f:
         for key, stats in history.items():
             user, g = key.split(',')
             f.write(f"{user},{g},{stats['w']},{stats['l']}\n")
@@ -119,7 +119,7 @@ othello=0
 c4=0
 
 
-with open("history.csv", "r") as f:
+with open(HISTORY_PATH, "r") as f:
     player_stats = {}
     for line in f:
         if line.strip():
@@ -132,7 +132,8 @@ top_players = sorted(player_stats.items(), key=lambda x: x[1]["w"], reverse=True
 players = [p[0] for p in top_players]
 wins = [p[1]["w"] for p in top_players]
 
-with open("history.csv", "r") as f:
+# HISTORY_PATH = os.path.join(os.path.dirname(BASE_DIR), 'history.csv')
+with open(HISTORY_PATH, "r") as f:
     for line in f:
         if line.strip():
             user, g, w, l = line.strip().split(',')

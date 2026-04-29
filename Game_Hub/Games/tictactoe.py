@@ -1,7 +1,7 @@
 import pygame
 import sys
 import numpy as np
-from game import Game
+from main_hub import Game
 
 from Core.configuration import *
 from Core.renderer import *
@@ -13,7 +13,8 @@ pygame.display.set_caption("Tic tac toe")
 
 
 # Background
-background = pygame.image.load("Assets_MC/nether.jpeg").convert()
+background = os.path.join(ASSETS,'nether.jpeg')
+background = pygame.image.load(background).convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
 ttt_pause_bg = os.path.join(ASSETS,'pause_ttt.PNG')
