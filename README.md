@@ -72,33 +72,40 @@ The final phase involves logging match results to history.csv, creating the lead
 ## FINAL WORKING OF THE PROJECT
 
 ## STRUCTURE
- 
-├── Game_HUB/
-│   ├── Assets_MC  
-│   ├── Games/
-│   │   ├── tictactoe.py  
-│   │   ├── connect4.py 
-│   │   └── othello.py
-│   ├── Core/
-│   │   ├── characters.py  
-│   │   ├── configuration.py 
-│   │   ├── league.py
-│   │   └── renderer.py
-│   ├── Graphs/
-│   │   ├── overall_top_players.png
-│   │   └── popularity.png
-│   ├── main.sh
-│   ├── leaderboard.sh
-│   ├── history.csv
-│   ├── users.tsv
-│   └── main_hub.py
-└── Documentation/
-    ├── report.tex 
-    ├── gamecraft report.pdf  
-    ├── makefile 
-    └── figures/ 
 
-## How to Run the Project
+## 📂 Project Directory Structure
+
+```text
+.
+└── Game_HUB/
+    ├── Assets_MC/
+    ├── Games/
+    │   ├── tictactoe.py
+    │   ├── connect4.py
+    │   └── othello.py
+    ├── Core/
+    │   ├── characters.py
+    │   ├── configuration.py
+    │   ├── league.py
+    │   └── renderer.py
+    ├── Graphs/
+    │   ├── overall_top_players.png
+    │   └── popularity.png
+    ├── main.sh
+    ├── leaderboard.sh
+    ├── history.csv
+    ├── users.tsv
+    ├── main_hub.py
+    └── Documentation/
+        ├── report.tex
+        ├── gamecraft report.pdf
+        ├── makefile
+        └── figures/
+
+
+```
+
+## How to run the Project
 
 1. Make scripts executable:
 ```bash
