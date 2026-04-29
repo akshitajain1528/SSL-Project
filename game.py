@@ -117,67 +117,21 @@ ttt=0
 othello=0
 c4=0
 
-# with open("history.csv", "r") as f:
-#     for line in f:
-#         if line.strip():
-#             user, g, w, l = line.strip().split(',')
-#             if g == "tictactoe":
-#                 ttt += int(w) + int(l)
-#             elif g == "othello":
-#                 othello += int(w) + int(l)
-#             elif g == "connect4":
-#                 c4 += int(w) + int(l)
 
-# games = ["Tic Tac Toe", "Othello", "Connect 4"]
-# plays = [ttt, othello, c4]
+with open("history.csv", "r") as f:
+    player_stats = {}
+    for line in f:
+        if line.strip():
+            user, g, w, l = line.strip().split(',') 
+            if user not in player_stats:
+                player_stats[user] = {"w": 0, "l": 0}
+            player_stats[user]["w"] += int(w)
+            player_stats[user]["l"] += int(l)
+top_players = sorted(player_stats.items(), key=lambda x: x[1]["w"], reverse=True)[:3]
+players = [p[0] for p in top_players]
+wins = [p[1]["w"] for p in top_players]
 
-# plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
-# plt.title("Game Popularity")
-# plt.savefig("game_popularity.png")
-# plt.close()
-
-# popularity_pie= pygame.image.load("game_popularity.png").convert_alpha()
-
-
-
-
-# plt.bar(players, wins, color=['green', 'blue', 'red'])
-# plt.title("Top Players by Total Wins")
-# plt.xlabel("Players")
-# plt.ylabel("Wins")
-# plt.savefig("top_players_overall.png")
-# plt.close()
-
-# overall_bar = pygame.image.load("top_players_overall.png").convert_alpha()
-    
-
-
-def refresh_plots():
-    global popularity_pie, overall_bar
-    global ttt, othello, c4
-    global games, plays, players, wins 
-
-    with open("history.csv", "r") as f:
-        player_stats = {}
-        for line in f:
-            if line.strip():
-                user, g, w, l = line.strip().split(',') 
-                if user not in player_stats:
-                    player_stats[user] = {"w": 0, "l": 0}
-                player_stats[user]["w"] += int(w)
-                player_stats[user]["l"] += int(l)
-    top_players = sorted(player_stats.items(), key=lambda x: x[1]["w"], reverse=True)[:3]
-    players = [p[0] for p in top_players]
-    wins = [p[1]["w"] for p in top_players]
-    
-    plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
-    plt.title("Game Popularity")
-    plt.savefig("game_popularity.png")
-
-    plt.savefig("game_popularity.png")
-    plt.close()
-
-    with open("history.csv", "r") as f:
+with open("history.csv", "r") as f:
     for line in f:
         if line.strip():
             user, g, w, l = line.strip().split(',')
@@ -190,6 +144,25 @@ def refresh_plots():
 
 games = ["Tic Tac Toe", "Othello", "Connect 4"]
 plays = [ttt, othello, c4]
+
+
+def refresh_plots():
+    global popularity_pie, overall_bar
+    global ttt, othello, c4
+    global games, plays, players, wins 
+
+    
+    plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
+    plt.title("Game Popularity")
+    plt.savefig("game_popularity.png")
+
+    plt.savefig("game_popularity.png")
+    plt.close()
+
+
+
+    games = ["Tic Tac Toe", "Othello", "Connect 4"]
+    plays = [ttt, othello, c4]
     
     plt.bar(players, wins, color=['green', 'blue', 'red'])
     plt.title("Top Players by Total Wins")

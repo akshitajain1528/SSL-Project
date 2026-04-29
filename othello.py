@@ -6,7 +6,7 @@ from game import Game
 from configuration import *
 from renderer import *
 
-# screen = pygame.display.set_mode((WIDTH, HEIGHT))
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
 # pygame.display.set_caption("Tic tac toe")
 
 # Background
