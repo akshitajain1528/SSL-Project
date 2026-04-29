@@ -98,7 +98,7 @@ def main(screen,player1,player2):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return
+                    return winner
             
             if event.type == pygame.MOUSEBUTTONDOWN and not is_anim:
                 posx = event.pos[0]
@@ -140,6 +140,8 @@ def main(screen,player1,player2):
                     win_data(player2,RED_RGBA)
 
                 my_game.switch_turns()
+
+        pygame.display.update()
 
                 
 

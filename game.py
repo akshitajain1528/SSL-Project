@@ -2,18 +2,21 @@ import numpy as np
 import pygame
 import sys
 import os
+import matplotlib.pyplot as plt
+import csv
 
 os.environ["SDL_AUDIODRIVER"] = "dummy" 
 
-# ============
-# Game Class
-# ============
 
 # ============
 # Game Class
 # ============
 
 class Game:
+
+    def players(self):
+        self.p1 = sys.argv[1] if len(sys.argv)>1  else "Steve"
+        self.p2 = sys.argv[2] if len(sys.argv)>2 else "Alex"
     
     def __init__(self):
         pass 
@@ -58,19 +61,164 @@ ASSETS = 'Assets_MC'
 bg_path = os.path.join(ASSETS,'minecraft_bg.png')
 bg_img = pygame.image.load(bg_path).convert()
 GAME_BG = pygame.transform.scale(bg_img,(WIDTH,HEIGHT))
+stat_bg_path = os.path.join(ASSETS,'leaderboard_bg.jpg')
+stat_bg_img = pygame.image.load(stat_bg_path).convert()
+stat_bg = pygame.transform.scale(stat_bg_img,(WIDTH,HEIGHT))
 
 
 # --- SOUND EFFECTS ---
 click_path = os.path.join(ASSETS,'click.mp3')
 click_sound = pygame.mixer.Sound(click_path)
 
+# popularity_pie = None
+# overall_bar = None
+
+
+def update_history(game_id, winner, loser, is_draw=False):
+    history = {}
+    
+    # 1. Load existing data
+    if os.path.exists("history.csv"):
+        with open("history.csv", "r") as f:
+            for line in f:
+                if line.strip():
+                    user, g, w, l = line.strip().split(',')
+                    history[f"{user},{g}"] = {"w": int(w), "l": int(l)}
+    
+    # 2. Update the specific players
+    if not is_draw:
+        win_key = f"{winner},{game_id}"
+        loss_key = f"{loser},{game_id}"
+        
+        if win_key not in history: history[win_key] = {"w": 0, "l": 0}
+        if loss_key not in history: history[loss_key] = {"w": 0, "l": 0}
+        
+        history[win_key]["w"] += 1
+        history[loss_key]["l"] += 1
+
+    # 3. Write it all back cumulatively!
+    with open("history.csv", "w") as f:
+        for key, stats in history.items():
+            user, g = key.split(',')
+            f.write(f"{user},{g},{stats['w']},{stats['l']}\n")
+
+
+# -------GRAPH PLOTS-------
+
+
 
 # ==========================
-#     MAIN LOOP AAGE 
+#       PIE CHART  
+# ==========================
+
+
+    
+ttt=0
+othello=0
+c4=0
+
+# with open("history.csv", "r") as f:
+#     for line in f:
+#         if line.strip():
+#             user, g, w, l = line.strip().split(',')
+#             if g == "tictactoe":
+#                 ttt += int(w) + int(l)
+#             elif g == "othello":
+#                 othello += int(w) + int(l)
+#             elif g == "connect4":
+#                 c4 += int(w) + int(l)
+
+# games = ["Tic Tac Toe", "Othello", "Connect 4"]
+# plays = [ttt, othello, c4]
+
+# plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
+# plt.title("Game Popularity")
+# plt.savefig("game_popularity.png")
+# plt.close()
+
+# popularity_pie= pygame.image.load("game_popularity.png").convert_alpha()
+
+
+
+
+# plt.bar(players, wins, color=['green', 'blue', 'red'])
+# plt.title("Top Players by Total Wins")
+# plt.xlabel("Players")
+# plt.ylabel("Wins")
+# plt.savefig("top_players_overall.png")
+# plt.close()
+
+# overall_bar = pygame.image.load("top_players_overall.png").convert_alpha()
+    
+
+
+def refresh_plots():
+    global popularity_pie, overall_bar
+    global ttt, othello, c4
+    global games, plays, players, wins 
+
+    with open("history.csv", "r") as f:
+        player_stats = {}
+        for line in f:
+            if line.strip():
+                user, g, w, l = line.strip().split(',') 
+                if user not in player_stats:
+                    player_stats[user] = {"w": 0, "l": 0}
+                player_stats[user]["w"] += int(w)
+                player_stats[user]["l"] += int(l)
+    top_players = sorted(player_stats.items(), key=lambda x: x[1]["w"], reverse=True)[:3]
+    players = [p[0] for p in top_players]
+    wins = [p[1]["w"] for p in top_players]
+    
+    plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
+    plt.title("Game Popularity")
+    plt.savefig("game_popularity.png")
+
+    plt.savefig("game_popularity.png")
+    plt.close()
+
+    with open("history.csv", "r") as f:
+    for line in f:
+        if line.strip():
+            user, g, w, l = line.strip().split(',')
+            if g == "tictactoe":
+                ttt += int(w) + int(l)
+            elif g == "othello":
+                othello += int(w) + int(l)
+            elif g == "connect4":
+                c4 += int(w) + int(l)
+
+games = ["Tic Tac Toe", "Othello", "Connect 4"]
+plays = [ttt, othello, c4]
+    
+    plt.bar(players, wins, color=['green', 'blue', 'red'])
+    plt.title("Top Players by Total Wins")
+    plt.xlabel("Players")
+    plt.ylabel("Wins")
+    plt.savefig("top_players_overall.png")
+
+    plt.savefig("top_players.png")
+    plt.close()
+
+    popularity_pie = pygame.image.load("game_popularity.png").convert_alpha()
+    overall_bar = pygame.image.load("top_players.png").convert_alpha()
+
+    popularity_pie = pygame.transform.scale(popularity_pie, (500, 400))
+    overall_bar = pygame.transform.scale(overall_bar, (500, 400))
+    pygame.display.flip()
+
+# ==========================
+#      MAIN LOOP AAGE 
 # ==========================
 
 def main_hub(player1,player2):
+    global popularity_pie, overall_bar
     run = True
+
+    lb_selected_game = "Tic Tac Toe"
+    lb_selected_sort = "Wins"
+    terminal_message = ""         
+    terminal_message_timer = 0
 
     current_state = "START_SCREEN"
 
@@ -78,7 +226,8 @@ def main_hub(player1,player2):
     btn_start_game_menu = pygame.Rect(WIDTH//2-200,300,400,60)
     btn_start_how_to = pygame.Rect(WIDTH//2-200,400,400,60)
     btn_start_leaderboard = pygame.Rect(WIDTH//2-200,500,400,60)
-    btn_start_quit = pygame.Rect(WIDTH//2-200,600,400,60)
+    btn_start_stats = pygame.Rect(WIDTH//2-200,600,400,60)
+    btn_start_quit = pygame.Rect(WIDTH//2-200,700,400,60)
 
     # --- BUTTON RECTANGLES: CHARACTERS ---
     btn_zombie_l = pygame.Rect(125,260,110,100)
@@ -86,15 +235,15 @@ def main_hub(player1,player2):
     btn_dog_l = pygame.Rect(125,480,110,100)
     btn_steve_l = pygame.Rect(125,590,110,100)
 
-    btn_zombie_char_l = pygame.Rect(50,270,200,250)
-    btn_pig_char_l = pygame.Rect(50,270,200,250)
-    btn_dog_char_l = pygame.Rect(50,270,200,250)
-    btn_steve_char_l = pygame.Rect(50,270,200,250)
+    btn_zombie_char_l = pygame.Rect(50,270,250,250)
+    btn_pig_char_l = pygame.Rect(50,270,250,250)
+    btn_dog_char_l = pygame.Rect(50,270,250,250)
+    btn_steve_char_l = pygame.Rect(50,270,250,250)
 
-    btn_zombie_char_r = pygame.Rect(WIDTH-250,270,200,250)
-    btn_pig_char_r = pygame.Rect(WIDTH-250,270,200,250)
-    btn_dog_char_r = pygame.Rect(WIDTH-250,270,200,250)
-    btn_steve_char_r = pygame.Rect(WIDTH-250,270,200,250)
+    btn_zombie_char_r = pygame.Rect(WIDTH-300,270,250,250)
+    btn_pig_char_r = pygame.Rect(WIDTH-300,270,250,250)
+    btn_dog_char_r = pygame.Rect(WIDTH-300,270,250,250)
+    btn_steve_char_r = pygame.Rect(WIDTH-300,270,250,250)
 
     btn_zombie_r = pygame.Rect(975,260,110,100)
     btn_pig_r = pygame.Rect(975,370,110,100)
@@ -157,6 +306,9 @@ def main_hub(player1,player2):
 
             h_leaderboard = btn_start_leaderboard.collidepoint((mx,my))
             menu_button(screen,btn_start_leaderboard,"LEADERBOARD", h_leaderboard)
+
+            h_stats = btn_start_stats.collidepoint((mx,my))
+            menu_button(screen, btn_start_stats, "STATISTICS", h_stats)
 
             h_quit = btn_start_quit.collidepoint((mx,my))
             menu_button(screen,btn_start_quit,"QUIT",h_quit)
@@ -231,6 +383,10 @@ def main_hub(player1,player2):
             wireframe_box(screen,box_character_left,"CHARACTER")
             wireframe_box(screen,box_character_right,"CHARACTER")
 
+            # ---LEADRERBOARD---
+            btn_lb_display = pygame.Rect(WIDTH//2 - 250, 350, 500, 60)
+            hover_lb_display = btn_lb_display.collidepoint((mx, my))
+
 
             # --- EVENT LISTENERS: START PAGE ---
             for event in pygame.event.get():
@@ -248,6 +404,11 @@ def main_hub(player1,player2):
                     elif h_leaderboard:
                         current_state="LEADERBOARD"
                         print('LEADERBOARD')
+
+                    elif h_stats:
+                        refresh_plots()
+                        current_state="STATISTICS"
+                        print("STATISTICS")
 
                     elif h_quit:
                         pygame.quit()
@@ -334,31 +495,80 @@ def main_hub(player1,player2):
             menu_button(screen,btn_back, "Back",hover_back)
 
             
-            # --- EVENT LISTENER: GAME MENU ---
+            # # --- EVENT LISTENER: GAME MENU ---
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
-                    
+
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if hover_c4:
-                        # click_sound.play()
-                        print("Launching Connect 4...")
-                        import connect4
-                        connect4.main(screen,player1,player2)
-
-                    elif hover_ttt:
-                        # click_sound.play()
-                        print("Launching Tic-Tac-Toe...")
+                    
+                    # --- TIC TAC TOE ---
+                    if hover_ttt:
                         import tictactoe
-                        tictactoe.main(screen,player1,player2)
+                        res = tictactoe.main(screen, player1, player2)
+                        if res == "draw":
+                            os.system(f'bash leaderboard.sh update tictactoe "{player1}" "{player2}" true')
+                        elif res:
+                            loser = player2 if res == player1 else player1
+                            os.system(f'bash leaderboard.sh update tictactoe "{res}" "{loser}" false')
+                            refresh_plots()
 
+                    # --- OTHELLO ---
                     elif hover_o: 
-                        print("Launching Othello")
                         import othello
-                        othello.main(screen,player1,player2)
+                        res = othello.main(screen, player1, player2)
+                        if res == "draw":
+                            os.system(f'bash leaderboard.sh update othello "{player1}" "{player2}" true')
+                        elif res:
+                            loser = player2 if res == player1 else player1
+                            os.system(f'bash leaderboard.sh update othello "{res}" "{loser}" false')
+                            refresh_plots()
+
+                    # --- CONNECT 4 ---
+                    elif hover_c4:
+                        import connect4
+                        res = connect4.main(screen, player1, player2)
+                        if res == "draw":
+                            os.system(f'bash leaderboard.sh update connect4 "{player1}" "{player2}" true')
+                        elif res:
+                            loser = player2 if res == player1 else player1
+                            os.system(f'bash leaderboard.sh update connect4 "{res}" "{loser}" false')
+                            refresh_plots()
 
                     elif hover_back:
-                        # click_sound.play()
+                        current_state = "START_SCREEN"
+
+                    elif hover_back:
+                        current_state="START_SCREEN"
+
+    # ====================================
+    #        2ND PAGE: STATISTICS
+    # ====================================
+        
+        elif current_state=="STATISTICS":
+            screen.blit(stat_bg,(0,0))
+
+            text_with_shadow(screen,"STATISTICS",title_font,WIDTH//2,80,WHITE)
+
+            btn_stat_back = pygame.Rect(WIDTH//2 - 200, 700, 400, 60)
+            hover_stat_back = btn_stat_back.collidepoint((mx,my))
+            menu_button(screen,btn_stat_back,"Back",hover_stat_back)
+
+            screen.blit(popularity_pie, (WIDTH//2 - 500, 150))
+            screen.blit(overall_bar, (WIDTH//2 , 150))
+            # screen.blit(resized_ttt_bar, (WIDTH//2 - 250, 400))
+            # screen.blit(resized_othello_bar, (WIDTH//2 + 250, 400))
+            # screen.blit(resized_c4_bar, (WIDTH//2 + 250, 150)) 
+
+            pygame.display.flip()  
+
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run=False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if hover_stat_back:
                         current_state="START_SCREEN"
 
 
@@ -397,9 +607,10 @@ def main_hub(player1,player2):
                     if hover_back:
                         current_state="START_SCREEN"
 
-    # ====================================
-    #        2ND PAGE: LEADERBOARD
-    # ====================================
+
+        # ====================================
+        #        2ND PAGE: LEADERBOARD
+        # ====================================
 
         elif current_state=="LEADERBOARD":
 
@@ -408,24 +619,104 @@ def main_hub(player1,player2):
             leaderboard_bg = pygame.transform.scale(l_bg_image,(WIDTH,HEIGHT))
             screen.blit(leaderboard_bg,(0,0))
 
-            text_with_shadow(screen,"LEADERBOARD",title_font,WIDTH//2,80,OBSIDIAN_BLACK)
+            text_with_shadow(screen,"LEADERBOARD",title_font,WIDTH//2,60,WHITE)
 
-                # --- BACK BUTTON ---
-            btn_lbback = pygame.Rect(WIDTH//2-125, 700, 250, 60)  
+            # --- ROW 1: GAME SELECTION ---
+            btn_lb_ttt = pygame.Rect(WIDTH//2 - 500, 150, 320, 60)
+            btn_lb_o   = pygame.Rect(WIDTH//2 - 160, 150, 320, 60)
+            btn_lb_c4  = pygame.Rect(WIDTH//2 + 180, 150, 320, 60)
+            
+            # --- ROW 2: SORTING METHOD ---
+            btn_sort_wins  = pygame.Rect(WIDTH//2 - 500, 240, 320, 60)
+            btn_sort_loss  = pygame.Rect(WIDTH//2 - 160, 240, 320, 60)
+            btn_sort_ratio = pygame.Rect(WIDTH//2 + 180, 240, 320, 60)
+
+            # --- ROW 3: DISPLAY BUTTON (Right below the 6 options) ---
+            btn_lb_display = pygame.Rect(WIDTH//2 - 250, 350, 500, 60)
+
+            # --- BACK BUTTON ---
+            btn_lbback = pygame.Rect(WIDTH//2 - 200, 700, 400, 60)
+
+            # --- HOVER STATES ---
+            hover_lb_ttt = btn_lb_ttt.collidepoint((mx, my))
+            hover_lb_o   = btn_lb_o.collidepoint((mx, my))
+            hover_lb_c4  = btn_lb_c4.collidepoint((mx, my))
+            
+            hover_sort_wins  = btn_sort_wins.collidepoint((mx, my))
+            hover_sort_loss  = btn_sort_loss.collidepoint((mx, my))
+            hover_sort_ratio = btn_sort_ratio.collidepoint((mx, my))
+            
+            hover_lb_display = btn_lb_display.collidepoint((mx, my))
             hover_back = btn_lbback.collidepoint((mx,my))
-            menu_button(screen,btn_lbback, "Back",hover_back)
 
+            # --- DRAW BUTTONS ---
+            menu_button(screen, btn_lb_ttt, "Tic Tac Toe", hover_lb_ttt or lb_selected_game == "Tic Tac Toe")
+            menu_button(screen, btn_lb_o, "Othello", hover_lb_o or lb_selected_game == "Othello")
+            menu_button(screen, btn_lb_c4, "Connect 4", hover_lb_c4 or lb_selected_game == "Connect 4")
+
+            menu_button(screen, btn_sort_wins, "Total Wins", hover_sort_wins or lb_selected_sort == "Wins")
+            menu_button(screen, btn_sort_loss, "Total Losses", hover_sort_loss or lb_selected_sort == "Losses")
+            menu_button(screen, btn_sort_ratio, "W/L Ratio", hover_sort_ratio or lb_selected_sort == "W/L Ratio")
+            menu_button(screen, btn_lb_display, "DISPLAY LEADERBOARD", hover_lb_display)
+        
+
+            menu_button(screen, btn_lbback, "Back", hover_back)
+            # The LEADERBOARD Back button
+            menu_button(screen, btn_lbback, "Back", hover_back)
+
+            # --- DRAW TERMINAL SUCCESS MESSAGE ---
+            if terminal_message:
+                if pygame.time.get_ticks() - terminal_message_timer < 3000:
+                    text_with_shadow(screen, terminal_message, small_font, WIDTH//2, 600, OBSIDIAN_BLACK)
+                else:
+                    terminal_message = ""
+
+            # --- EVENT LISTENER: LEADERBOARD ---
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
+                    
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if hover_back:
-                        current_state="START_SCREEN"
+                        current_state = "START_SCREEN"
+                    
+                    # Selection Logic
+                    elif hover_lb_ttt:
+                        lb_selected_game = "Tic Tac Toe"
+                    elif hover_lb_o:
+                        lb_selected_game = "Othello"
+                    elif hover_lb_c4:
+                        lb_selected_game = "Connect 4"
+                        
+                    elif hover_sort_wins:
+                        lb_selected_sort = "Wins"
+                    elif hover_sort_loss:
+                        lb_selected_sort = "Losses"
+                    elif hover_sort_ratio:
+                        lb_selected_sort = "W/L Ratio"
+
+                    # elif hover_lb_display:
+                        # print(f"Loading {lb_selected_game} stats, sorted by {lb_selected_sort}!")
+
+                    elif hover_lb_display:
+                        game_map = {"Tic Tac Toe": "tictactoe", "Othello": "othello", "Connect 4": "connect4"}
+                        # Wins = col 2, Losses = col 3, Ratio = col 5
+                        sort_map = {"Wins": 2, "Losses": 3, "W/L Ratio": 5}
+    
+                        g_id = game_map[lb_selected_game]
+                        col = sort_map[lb_selected_sort]
+    
+                        os.system(f'bash leaderboard.sh display {g_id} {col}')
+
+                        # screen message
+                        terminal_message = "Leaderboard displayed on terminal!"
+                        terminal_message_timer = pygame.time.get_ticks()
 
 
         pygame.display.update()
 
 if __name__ == '__main__':
-   p1 = sys.argv[1] if len(sys.argv)>1  else "Steve"
-   p2 = sys.argv[2] if len(sys.argv)>2 else "Alex"
-   main_hub(p1,p2)
+    game = Game()
+    game.players()
+    p1, p2 = game.p1, game.p2
+    main_hub(p1,p2)
