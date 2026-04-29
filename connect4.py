@@ -86,11 +86,10 @@ def main(screen,player1,player2,avatar_left,avatar_right):
 
     # ---  BACK AND MENU BUTTONS ---
     back_button = pygame.Rect(50,50,150,60)
-    gm_menu_button = pygame.Rect(WIDTH//2 - 150, HEIGHT//2, 300, 50)
-    resume_button = pygame.Rect(WIDTH//2 - 150, HEIGHT//2 + 70, 300, 50)
+    gm_menu_button = pygame.Rect(WIDTH//2 - 350, HEIGHT//2, 300, 50)
+    resume_button = pygame.Rect(WIDTH//2 - 350, HEIGHT//2 + 70, 300, 50)
 
     is_paused = False
-    # back_hovering = back_button.collidepoint((mx,my))
 
 
     while running:
@@ -101,26 +100,22 @@ def main(screen,player1,player2,avatar_left,avatar_right):
         anim_state = (is_anim,anim_col,anim_y,anim_player)
         connect4_frame(screen,my_game,player1,player2,avatar_left,avatar_right,C4_GAME_BG,anim_state,win_data)
 
+        # --- BACK BUTTON ---
         h_back = back_button.collidepoint((mx, my))
-        menu_button(screen, back_button, "BACK", h_back, small_font)
+        if not my_game.game_over:
+            menu_button(screen, back_button, "BACK", h_back, small_font)
 
         if is_paused:
-            darken = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
-            darken.fill((0, 0, 0, 150))
-            screen.blit(darken, (0, 0))
-
             screen.blit(C4_PAUSE_BG,(0,0))
-            # pygame.draw.rect(screen, WHITE, pm_rect, 4, border_radius=10)
 
-            text_with_shadow(screen, "TOO EARLY??", title_font, WIDTH//2, HEIGHT//2 - 100, RED_RGBA)
+            text_with_shadow(screen, "PLEASE DON'T LEAVE", title_modern_font, WIDTH//2, HEIGHT//2 - 100, WHITE)
+            gm_menu = gm_menu_button.collidepoint((mx, my))
+            menu_button(screen, gm_menu_button, "GAME MENU", gm_menu, small_font)
             
-            h_pm_menu = gm_menu_button.collidepoint((mx, my))
-            menu_button(screen, gm_menu_button, "GAME MENU", h_pm_menu, small_font)
-            
-            h_pm_resume = resume_button.collidepoint((mx, my))
-            menu_button(screen, resume_button, "BACK TO GAME", h_pm_resume, small_font)
+            resume = resume_button.collidepoint((mx, my))
+            menu_button(screen, resume_button, "BACK TO GAME", resume, small_font)
 
-        # ONE SINGLE UPDATE CALL AT THE VERY END
+
         pygame.display.update()
 
         # --- EVENTS : CONNECT4 ---
@@ -131,16 +126,18 @@ def main(screen,player1,player2,avatar_left,avatar_right):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return win_data[0]
+                    is_paused = True
+                    # return win_data[0]
+
             
-            if is_paused:
+            if event.type == pygame.MOUSEBUTTONDOWN and is_paused:
                 if gm_menu_button.collidepoint((mx,my)):
                     return
                 elif resume_button.collidepoint((mx,my)):
                     is_paused = False
             
             else:
-                if back_button.collidepoint((mx,my)):
+                if event.type == pygame.MOUSEBUTTONDOWN and h_back and not my_game.game_over:
                     is_paused = True
                 
                 elif event.type == pygame.MOUSEBUTTONDOWN and not is_anim and not my_game.game_over:
@@ -182,8 +179,11 @@ def main(screen,player1,player2,avatar_left,avatar_right):
                 elif my_game.check_win() == 0:
                     my_game.game_over = True
                     win_data = ("Tie",YELLOW,None)
+            
+        if my_game.game_over:
+            return win_data[0]
 
-                my_game.switch_turns()
+        my_game.switch_turns()
 
         pygame.display.update()
 

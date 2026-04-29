@@ -28,8 +28,8 @@ def draw_selected_characters(screen, avatar_left, avatar_right, mx, my, small_fo
     rect_left = pygame.Rect(50,150,200,50)
     rect_right = pygame.Rect(WIDTH-250,150,200,50)
 
-    wireframe_box(screen, rect_left, "CHARACTER")
-    wireframe_box(screen, rect_right, "CHARACTER")
+    wireframe_box(screen, rect_left, "AVATAR")
+    wireframe_box(screen, rect_right, "AVATAR")
     
     # --- LEFT PLAYER ---
     if avatar_left: 

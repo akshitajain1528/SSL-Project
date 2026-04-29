@@ -13,6 +13,7 @@ title_font = pygame.font.Font(font_minecrafter,80)
 button_font = pygame.font.Font(font_modern,36)
 small_font = pygame.font.Font(font_modern,24)
 medium_font = pygame.font.Font(font_modern,36)
+title_modern_font = pygame.font.Font(font_modern,80)
 
 # --- ASSET LOADING ---
 
@@ -196,8 +197,6 @@ def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,a
             text_with_shadow(screen, f"It's a TIE", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
             text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
 
-    # pygame.display.update()
-
 
 def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar):
 
@@ -300,24 +299,41 @@ def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,wi
             # pygame.draw.rect(screen, (170, 0, 0), rect, 3) # Dark Red border
             screen.blit(REDSTONE_SPRITE,center)
 
-def othello_frame(screen,game,background,player1,player2,winner,win_color):
+
+
+def othello_frame(screen,game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar):
+    # --- BACKGROUND ---
     screen.blit(background,(0,0))
     board = pygame.Surface((SQUARESIZE_OTHELLO*COLS_OTHELLO+50,SQUARESIZE_OTHELLO*ROWS_OTHELLO+50),pygame.SRCALPHA)
     board.fill(DARK_PINK)
     board.set_alpha(50)
     screen.blit(board,(X_OFFSET_OTHELLO-25,Y_OFFSET_OTHELLO+30))
 
+
+    # --- CHARACTERS ---
+    rect_left = pygame.Rect(50,150,200,50)
+    rect_right = pygame.Rect(WIDTH-250,150,200,50)
+    wireframe_box(screen, rect_left, "AVATAR")
+    wireframe_box(screen, rect_right, "AVATAR")
+    
+    avatar = pygame.transform.scale(CHAR_IMAGES_L[avatar_left], (200, 200)) 
+    screen.blit(avatar, (50,300))
+    avatar = pygame.transform.scale(CHAR_IMAGES_R[avatar_right], (200, 200)) 
+    screen.blit(avatar, (WIDTH-250,300))
+
+
+    # --- TEXT ---
     text_with_shadow(screen,"OTHELLO",title_font,WIDTH//2,50,WHITE)
 
     if not game.game_over:
         if game.player == 1:
-            text_with_shadow(screen,f"{player1}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,105,BLUE_RGBA,BLACK)
+            text_with_shadow(screen,f"{player1}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,105,(153, 153, 153))
         else:
-            text_with_shadow(screen,f"{player2}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,105,YELLOW,BLACK)
+            text_with_shadow(screen,f"{player2}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,105,(183, 49, 204))
 
     mx,my = pygame.mouse.get_pos()
 
-    # --- othello hover only on valid moves ---
+    # --- OTHELLO HOVER OVER ONLY VALID MOVES ---
     if not game.game_over and (X_OFFSET_OTHELLO <= mx <= WIDTH - X_OFFSET_OTHELLO) and (Y_OFFSET_OTHELLO + 55 <= my <= HEIGHT - 20):
         hover_col = int((mx-X_OFFSET_OTHELLO)//SQUARESIZE_OTHELLO)
         hover_row = int((my-Y_OFFSET_OTHELLO-55)//SQUARESIZE_OTHELLO)
@@ -337,14 +353,16 @@ def othello_frame(screen,game,background,player1,player2,winner,win_color):
                     if is_valid:
                         break 
                 
-                # only draw the ghost if move is legal
+                # ONLY DRAW THE GHOST IF THE MOVE IS LEGAL
                 if is_valid:
-                    # Calculate X and Y for the hovered square ONLY
+    
                     x = X_OFFSET_OTHELLO + (hover_col * SQUARESIZE_OTHELLO)
                     y = Y_OFFSET_OTHELLO + (hover_row * SQUARESIZE_OTHELLO) + 55
                     
                     ghost = PINK_BLOCK_SPRITE_GHOST if game.player == 1 else BLACK_BLOCK_SPRITE_GHOST
                     screen.blit(ghost, (x - 25, y))
+    
+    # --- BOARD ---
 
     grid_layer = pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
     for r in range(ROWS_OTHELLO):
@@ -362,11 +380,26 @@ def othello_frame(screen,game,background,player1,player2,winner,win_color):
     
     screen.blit(grid_layer,(0,0))
 
+
+    # --- WIN CONDITION ---
     if game.game_over:
         banner = pygame.Surface((WIDTH, 150))
         banner.set_alpha(220)
         banner.fill(BLACK)
         screen.blit(banner, (0, HEIGHT//2 - 75))
-    
-        text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
-        text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+
+        if winner == player1:
+            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
+            avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+            screen.blit(avatar, (50,200))
+
+        elif winner == player2:
+            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
+            avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+            screen.blit(avatar, (WIDTH-490,200))
+        
+        elif winner == "Tie":
+            text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)

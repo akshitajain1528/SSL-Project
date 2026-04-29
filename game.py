@@ -430,8 +430,8 @@ def main_hub(player1,player2):
                 # --- CHARACTER ---
             rect_left = pygame.Rect(50,150,200,50)
             rect_right = pygame.Rect(WIDTH-250,150,200,50)
-            wireframe_box(screen, rect_left, "CHARACTER")
-            wireframe_box(screen, rect_right, "CHARACTER")
+            wireframe_box(screen, rect_left, "AVATAR")
+            wireframe_box(screen, rect_right, "AVATAR")
 
 
             avatar = pygame.transform.scale(CHAR_IMAGES_L[avatar_left], (250, 250)) 
@@ -481,7 +481,7 @@ def main_hub(player1,player2):
                     # --- OTHELLO ---
                     elif hover_o: 
                         import othello
-                        res = othello.main(screen, player1, player2)
+                        res = othello.main(screen, player1, player2,avatar_left,avatar_right)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update othello "{player1}" "{player2}" true')
                         elif res:
@@ -534,6 +534,10 @@ def main_hub(player1,player2):
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if hover_stat_back:
                         current_state="START_SCREEN"
+
+    # ====================================
+    #        2ND PAGE: LEADERBOARD
+    # ====================================                       
 
 
         elif current_state=="LEADERBOARD":

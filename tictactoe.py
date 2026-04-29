@@ -16,6 +16,9 @@ pygame.display.set_caption("Tic tac toe")
 background = pygame.image.load("Assets_MC/nether.jpeg").convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
+ttt_pause_bg = os.path.join(ASSETS,'pause_ttt.PNG')
+ttt_pause_bg = pygame.image.load(ttt_pause_bg).convert()
+TTT_PAUSE_BG = pygame.transform.scale(ttt_pause_bg,(WIDTH,HEIGHT))
 
 
 class TicTacToe(Game):
@@ -91,16 +94,38 @@ class TicTacToe(Game):
 def main(screen, player1, player2,avatar_left,avatar_right):
     my_game = TicTacToe()
     
-
     # global game_over, player
-
     clock = pygame.time.Clock()
     # game_over = False  
     winner,win_color,win_avatar = None,None,None
+
+    # --- BACK AND MENU BUTTONS ---
+    back_button = pygame.Rect(50,50,150,60)
+    gm_menu_button = pygame.Rect(WIDTH//2 - 350,HEIGHT//2, 300, 50)
+    resume_button = pygame.Rect(WIDTH//2 - 350, HEIGHT//2 + 70, 300, 50)
+
+    is_paused = False
+
     while True:
 
         ttt_frame(screen,my_game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar)
         clock.tick(60)
+        mx,my = pygame.mouse.get_pos()
+
+        # --- BACK BUTTON ---
+        h_back = back_button.collidepoint((mx, my))
+        if not my_game.game_over:
+            menu_button(screen, back_button, "BACK", h_back, small_font)
+
+        if is_paused:
+            screen.blit(TTT_PAUSE_BG,(0,0))
+
+            text_with_shadow(screen, "PLEASE DON'T LEAVE", title_modern_font, WIDTH//2, HEIGHT//2 - 100, WHITE)
+            gm_menu = gm_menu_button.collidepoint((mx, my))
+            menu_button(screen, gm_menu_button, "GAME MENU", gm_menu, small_font)
+            
+            resume = resume_button.collidepoint((mx, my))
+            menu_button(screen, resume_button, "BACK TO GAME", resume, small_font)
 
         # --- LINE ---
         if my_game.winning_line and my_game.game_over:
@@ -116,32 +141,45 @@ def main(screen, player1, player2,avatar_left,avatar_right):
             # --- BACK TO HUB ---
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return winner # exits this game and goes back
+                    is_paused = True
+                    # return winner # EXITS THIS GAME AND GOES BACK
+                
+            if event.type == pygame.MOUSEBUTTONDOWN and is_paused:
+                if gm_menu_button.collidepoint((mx,my)):
+                    return
+                elif resume_button.collidepoint((mx,my)):
+                    is_paused = False
+            else:
+                if event.type == pygame.MOUSEBUTTONDOWN and h_back and not my_game.game_over:
+                    is_paused = True   
 
-            if event.type == pygame.MOUSEBUTTONDOWN and not my_game.game_over:
-                mouseX, mouseY = event.pos
-                if X_OFFSET_TTT<=mouseX<=WIDTH-X_OFFSET_TTT and Y_OFFSET_TTT+30<mouseY<=HEIGHT-20:
-                    col = (mouseX - X_OFFSET_TTT)//SQUARESIZE_TTT
-                    row = (mouseY - 55 - Y_OFFSET_TTT) // SQUARESIZE_TTT
+                elif event.type == pygame.MOUSEBUTTONDOWN and not my_game.game_over:
 
-                    if my_game.available_square(row, col):
-                        my_game.mark_square(row, col)
+                    if X_OFFSET_TTT<=mx<=WIDTH-X_OFFSET_TTT and Y_OFFSET_TTT+30<my<=HEIGHT-20:
+                        col = (mx - X_OFFSET_TTT)//SQUARESIZE_TTT
+                        row = (my - 55 - Y_OFFSET_TTT) // SQUARESIZE_TTT
 
-                        if my_game.check_win() == 1:
-                            my_game.game_over = True
-                            winner = player1
-                            win_color = BLUE_RGBA
-                            win_avatar = avatar_left
-                        elif my_game.check_win() == -1:
-                            my_game.game_over = True
-                            winner = player2
-                            win_color = YELLOW
-                            win_avatar = avatar_right
+                        if my_game.available_square(row, col):
+                            my_game.mark_square(row, col)
 
-                        elif my_game.check_win() == 0:
-                            my_game.game_over = True
-                            winner = "Tie"
-                            win_color = RED_RGBA
+                            if my_game.check_win() == 1:
+                                my_game.game_over = True
+                                winner = player1
+                                win_color = BLUE_RGBA
+                                win_avatar = avatar_left
+                            elif my_game.check_win() == -1:
+                                my_game.game_over = True
+                                winner = player2
+                                win_color = YELLOW
+                                win_avatar = avatar_right
+
+                            elif my_game.check_win() == 0:
+                                my_game.game_over = True
+                                winner = "Tie"
+                                win_color = RED_RGBA
+
+                        if my_game.game_over:
+                            return winner
 
                         my_game.switch_turns()
 

@@ -12,6 +12,10 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 background = pygame.image.load("Assets_MC/othellobackdrop.jpeg").convert()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
+o_pause_bg = os.path.join(ASSETS,'pause_o.PNG')
+o_pause_bg = pygame.image.load(o_pause_bg).convert()
+O_PAUSE_BG = pygame.transform.scale(o_pause_bg,(WIDTH,HEIGHT))
+
 
 class Othello(Game):
 
@@ -87,19 +91,44 @@ class Othello(Game):
         return None  # game not over
 
 
-def main(screen, player1, player2):
+def main(screen, player1, player2,avatar_left,avatar_right):
 
     my_game = Othello()
     clock = pygame.time.Clock()
-    winner, win_color = None, None
-    
+    winner, win_color,win_avatar = None, None, None
+
+    # --- BACK AND MENU BUTTONS ---
+    back_button = pygame.Rect(50,50,150,60)
+    gm_menu_button = pygame.Rect(WIDTH//2 + 250,HEIGHT//2, 300, 50)
+    resume_button = pygame.Rect(WIDTH//2 + 250, HEIGHT//2 + 70, 300, 50)
+
+    is_paused = False
 
     display_message = ""
     message_timer = 0
     font = pygame.font.Font(None, 48)
 
     while True:
+        othello_frame(screen, my_game, background, player1, player2,avatar_left,avatar_right, winner, win_color,win_avatar)
+
         clock.tick(60)
+        mx,my = pygame.mouse.get_pos()
+
+        # --- BACK BUTTON ---
+        h_back = back_button.collidepoint((mx, my))
+        if not my_game.game_over:
+            menu_button(screen, back_button, "BACK", h_back, small_font)
+
+        if is_paused:
+            screen.blit(O_PAUSE_BG,(0,0))
+
+            text_with_shadow(screen, "PLEASE DON'T LEAVE", title_modern_font, WIDTH//2, HEIGHT//2 - 200, WHITE)
+            gm_menu = gm_menu_button.collidepoint((mx, my))
+            menu_button(screen, gm_menu_button, "GAME MENU", gm_menu, small_font)
+            
+            resume = resume_button.collidepoint((mx, my))
+            menu_button(screen, resume_button, "BACK TO GAME", resume, small_font)
+        
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -108,35 +137,45 @@ def main(screen, player1, player2):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return winner
+                    is_paused = True
+                    # return winner
+                
+            if event.type == pygame.MOUSEBUTTONDOWN and is_paused:
+                if gm_menu_button.collidepoint((mx,my)):
+                    return
+                elif resume_button.collidepoint((mx,my)):
+                    is_paused = False
+            else:
+                if event.type == pygame.MOUSEBUTTONDOWN and h_back and not my_game.game_over:
+                    is_paused = True 
 
          
-            if event.type == pygame.MOUSEBUTTONDOWN and not my_game.game_over:
-                mouseX, mouseY = event.pos
-                if X_OFFSET_OTHELLO <= mouseX <= WIDTH - X_OFFSET_OTHELLO and Y_OFFSET_OTHELLO + 30 < mouseY <= HEIGHT - 20:
-                    col = (mouseX - X_OFFSET_OTHELLO) // SQUARESIZE_OTHELLO
-                    row = (mouseY - 55 - Y_OFFSET_OTHELLO) // SQUARESIZE_OTHELLO
+                elif event.type == pygame.MOUSEBUTTONDOWN and not my_game.game_over:
 
-                    if my_game.board[row, col] == 0:
-                        valid_move = False
+                    if X_OFFSET_OTHELLO <= mx <= WIDTH - X_OFFSET_OTHELLO and Y_OFFSET_OTHELLO + 30 < my <= HEIGHT - 20:
+                        col = (mx - X_OFFSET_OTHELLO) // SQUARESIZE_OTHELLO
+                        row = (my - 55 - Y_OFFSET_OTHELLO) // SQUARESIZE_OTHELLO
 
-                        for dr in [-1, 0, 1]:
-                            for dc in [-1, 0, 1]:
-                                if dr == 0 and dc == 0:
-                                    continue
-                                if my_game.switch_possible(row, col, dr, dc, my_game.player):
-                                    valid_move = True
+                        if my_game.board[row, col] == 0:
+                            valid_move = False
 
-                        if valid_move:
-                            my_game.board[row, col] = my_game.player
-                            my_game.switch_pieces(row, col, my_game.player)
-                            my_game.player *= -1
+                            for dr in [-1, 0, 1]:
+                                for dc in [-1, 0, 1]:
+                                    if dr == 0 and dc == 0:
+                                        continue
+                                    if my_game.switch_possible(row, col, dr, dc, my_game.player):
+                                        valid_move = True
 
-                            if not my_game.has_any_valid_move(my_game.player) and not my_game.board_full():
-                                p_name = player1 if my_game.player == 1 else player2
-                                display_message = f"No moves for {p_name}! Turn skipped."
-                                message_timer = pygame.time.get_ticks()
-                                my_game.player *= -1 
+                            if valid_move:
+                                my_game.board[row, col] = my_game.player
+                                my_game.switch_pieces(row, col, my_game.player)
+                                my_game.player *= -1
+
+                                if not my_game.has_any_valid_move(my_game.player) and not my_game.board_full():
+                                    p_name = player1 if my_game.player == 1 else player2
+                                    display_message = f"No moves for {p_name}! Turn skipped."
+                                    message_timer = pygame.time.get_ticks()
+                                    my_game.player *= -1 
 
 
         winner_code = my_game.win_check(my_game.player)
@@ -146,32 +185,36 @@ def main(screen, player1, player2):
             
             if winner_code == 1:
                 winner = player1            
-                win_color = (0, 200, 255)    
+                win_color = (153,153,153) 
+                win_avatar =  avatar_left 
                 
             elif winner_code == -1:
                 winner = player2            
-                win_color = (255, 215, 0)    
+                win_color = (183, 49, 204)
+                win_avatar = avatar_right    
                 
             else:
                 winner = "draw"            
                 win_color = (255, 255, 255) 
+                win_avatar = None
 
-        othello_frame(screen, my_game, background, player1, player2, winner, win_color)
+        if my_game.game_over:
+            return winner
         
-        if display_message:
-            current_time = pygame.time.get_ticks()
-            if current_time - message_timer < 3000: 
+        # if display_message:
+        #     current_time = pygame.time.get_ticks()
+        #     if current_time - message_timer < 3000: 
                 
 
-                    banner = pygame.Surface((WIDTH, 150))
-                    banner.set_alpha(220)
-                    banner.fill(BLACK)
-                    screen.blit(banner, (0, HEIGHT//2 - 75))
+        #             banner = pygame.Surface((WIDTH, 150))
+        #             banner.set_alpha(220)
+        #             banner.fill(BLACK)
+        #             screen.blit(banner, (0, HEIGHT//2 - 75))
     
-                    text_with_shadow(screen,display_message, medium_font, WIDTH//2, HEIGHT//2 - 20, WHITE)
+        #             text_with_shadow(screen,display_message, medium_font, WIDTH//2, HEIGHT//2 - 20, WHITE)
                 
-            else:
-                display_message = ""
+        #     else:
+        #         display_message = ""
 
         pygame.display.update()
 
