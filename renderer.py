@@ -3,13 +3,10 @@ import os
 import math
 from configuration import *
 
-
-
 # --- FONTS ---
 font_modern = os.path.join(ASSETS,'font_modern.otf')
 font_minecrafter = os.path.join(ASSETS,'minecrafter.ttf')
 font_pixel_purl = os.path.join(ASSETS,'pixel_purl.ttf')
-
 
 # --- FONT STYLES ---
 title_font = pygame.font.Font(font_minecrafter,80)
@@ -17,9 +14,7 @@ button_font = pygame.font.Font(font_modern,36)
 small_font = pygame.font.Font(font_modern,24)
 medium_font = pygame.font.Font(font_modern,36)
 
-
 # --- ASSET LOADING ---
-
 
 
 p1_img = pygame.image.load(os.path.join(ASSETS,'diamond.png')).convert_alpha()
@@ -37,6 +32,12 @@ APPLE_SPRITE = pygame.transform.scale(apple,(50,50))
 redstone = pygame.image.load(os.path.join(ASSETS,'redstone.png')).convert_alpha()
 REDSTONE_SPRITE = pygame.transform.scale(redstone,(20,20))
 
+pink_block = pygame.image.load(os.path.join(ASSETS,'spritepink.png')).convert_alpha()
+PINK_BLOCK_SPRITE = pygame.transform.scale(pink_block,(120,70))
+
+black_block = pygame.image.load(os.path.join(ASSETS,'spriteblack.png')).convert_alpha()
+BLACK_BLOCK_SPRITE = pygame.transform.scale(black_block,(120,70))
+
 # ========================
 #     GHOST VERSIONS 
 # ========================
@@ -47,76 +48,59 @@ P1_GHOST.set_alpha(180)
 P2_GHOST = P2_SPRITE.copy()
 P2_GHOST.set_alpha(180)
 
-# --- TIC TAC TOE ---
+# --- TIC TAC TOE / OTHELLO ---
 SWORD_GHOST = SWORD_SPRTIE.copy()
 SWORD_GHOST.set_alpha(160)
 APPLE_GHOST = APPLE_SPRITE.copy()
 APPLE_GHOST.set_alpha(160) 
-
+PINK_BLOCK_SPRITE_GHOST = PINK_BLOCK_SPRITE.copy()
+PINK_BLOCK_SPRITE_GHOST.set_alpha(160)
+BLACK_BLOCK_SPRITE_GHOST = BLACK_BLOCK_SPRITE.copy()
+BLACK_BLOCK_SPRITE_GHOST.set_alpha(160)
 
 
 # ======================
 #    UI ELEMENT FUXNS
 # ======================
 
-
 def text_with_shadow (screen,text,font,c_x,c_y,color,color_shaow=BLACK):
     """Gives shadow to a text of 4 pixel of desired color."""
-
-    # --- Shadow (Black, offset 4 pixels) ---
     shadow = font.render(text, False, color_shaow)
     shadow_rect = shadow.get_rect(center=(c_x + 4, c_y + 4))
     screen.blit(shadow, shadow_rect)
     
-    # --- Main Text ---
     label = font.render(text, False, color)
     label_rect = label.get_rect(center=(c_x, c_y))
     screen.blit(label, label_rect)
 
-
 def menu_button(screen, rect, text, is_hovering,fontstyle=button_font,):
-    """Draws a multi-layered Minecraft menu button over the background artwork."""
-    
-    # --- Dynamic Hover Colors (Dark border standard, White border hover) ---
     border_color = WHITE if is_hovering else BORDER_DARK
     text_color = YELLOW if is_hovering else WHITE
     
-    # --- Draw base UI grey block (slightly transparent for cool overlay effect) ---
     overlay = pygame.Surface((rect.width, rect.height))
-    overlay.set_alpha(200) # (0-255 opacity) let the background bleed through slightly
+    overlay.set_alpha(200) 
     overlay.fill(UI_GREY)
     screen.blit(overlay, (rect.x, rect.y))
     
-    # --- Draw accurate Minecraft 3D Border ---
     pygame.draw.rect(screen, border_color, rect, width=4)
 
-    # --- Render Text ---
     label = fontstyle.render(text, False, text_color)
     label_rect = label.get_rect(center=rect.center)
     screen.blit(label, label_rect)
 
-
 def image_button(screen, rect, image, is_hovering):
-    """Draws an image-based button inside a UI rectangle."""
-
-    # --- Dynamic Hover Border ---
     if is_hovering:
         border_color = WHITE
         pygame.draw.rect(screen, border_color, rect, width=4)
 
 
-    # --- Resize image to fit button ---
+    # --- RESIZE IMAGE TO FIT BUTTON ---
     img = pygame.transform.scale(image, (rect.width - 10, rect.height - 10))
-
-    # --- Center image inside rect ---
     img_rect = img.get_rect(center=rect.center)
     screen.blit(img, img_rect)
-   
-
 
 def wireframe_box(screen,rect,text=""):
     pygame.draw.rect(screen,WHITE,rect,width=3,border_radius=10)
-
     if text:
         label = small_font.render(text,False,WHITE)
         screen.blit(label, label.get_rect(center=rect.center))
@@ -128,8 +112,6 @@ def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,a
 
     mx,my = pygame.mouse.get_pos()
 
-
-    # --- BG AND THE DIMMING BOX ---
     screen.blit(bg_img,(0,0))
     overlay = pygame.Surface((BOARD_WIDTH_C4+40,BOARD_HEIGHT_C4+40),pygame.SRCALPHA)
     overlay.fill((0,0,0))
@@ -161,7 +143,6 @@ def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,a
         else:
             text_with_shadow(screen,f"{player2}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,110,RED_RGBA,BLACK)
 
-    # --- DYNAMIC RENDERING ---
     if not is_anim and not game.game_over and (X_OFFSET_C4 <= mx <= X_OFFSET_C4 + BOARD_WIDTH_C4) and (Y_OFFSET_C4 <= my <= Y_OFFSET_C4 + BOARD_HEIGHT_C4):
         hover_col = int((mx-X_OFFSET_C4)//SQUARESIZE_C4)
         hover_row = int((my-Y_OFFSET_C4)//SQUARESIZE_C4)
@@ -175,15 +156,12 @@ def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,a
         active_sprite = P1_SPRITE if anim_player == 1 else P2_SPRITE
         screen.blit(active_sprite, (sprite_x,anim_y+5))
 
-    # --- MAKING THE GRID ---
     grid_layer = pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
-
     for r in range(ROWS_C4):
         for c in range(COLUMNS_C4):
             x = X_OFFSET_C4 + (c * SQUARESIZE_C4)
             y = Y_OFFSET_C4 + (r * SQUARESIZE_C4)
             
-            # Static pieces
             piece = game.board[r, c]
             if piece == 1:
                 screen.blit(P1_SPRITE, (x + 3, y))
@@ -218,7 +196,7 @@ def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,a
             text_with_shadow(screen, f"It's a TIE", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
             text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
 
-    pygame.display.update()
+    # pygame.display.update()
 
 
 def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar):
@@ -262,10 +240,7 @@ def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,wi
         if not game.board[hover_row,hover_col]:
             screen.blit(ghost,(sprite_x, sprite_y))
 
-
-    # --- MAKING THE GRID ---
     grid_layer = pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
-
     for r in range(ROWS_TTT):
         for c in range(COLS_TTT):
             x = X_OFFSET_TTT + (c * SQUARESIZE_TTT)
@@ -325,4 +300,73 @@ def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,wi
             # pygame.draw.rect(screen, (170, 0, 0), rect, 3) # Dark Red border
             screen.blit(REDSTONE_SPRITE,center)
 
-    pygame.display.update()
+def othello_frame(screen,game,background,player1,player2,winner,win_color):
+    screen.blit(background,(0,0))
+    board = pygame.Surface((SQUARESIZE_OTHELLO*COLS_OTHELLO+50,SQUARESIZE_OTHELLO*ROWS_OTHELLO+50),pygame.SRCALPHA)
+    board.fill(DARK_PINK)
+    board.set_alpha(50)
+    screen.blit(board,(X_OFFSET_OTHELLO-25,Y_OFFSET_OTHELLO+30))
+
+    text_with_shadow(screen,"OTHELLO",title_font,WIDTH//2,50,WHITE)
+
+    if not game.game_over:
+        if game.player == 1:
+            text_with_shadow(screen,f"{player1}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,105,BLUE_RGBA,BLACK)
+        else:
+            text_with_shadow(screen,f"{player2}'s Turn",pygame.font.Font(font_pixel_purl,44),WIDTH//2,105,YELLOW,BLACK)
+
+    mx,my = pygame.mouse.get_pos()
+
+    # --- othello hover only on valid moves ---
+    if not game.game_over and (X_OFFSET_OTHELLO <= mx <= WIDTH - X_OFFSET_OTHELLO) and (Y_OFFSET_OTHELLO + 55 <= my <= HEIGHT - 20):
+        hover_col = int((mx-X_OFFSET_OTHELLO)//SQUARESIZE_OTHELLO)
+        hover_row = int((my-Y_OFFSET_OTHELLO-55)//SQUARESIZE_OTHELLO)
+        
+        if 0 <= hover_row < ROWS_OTHELLO and 0 <= hover_col < COLS_OTHELLO:
+            
+            if game.board[hover_row, hover_col] == 0:
+                is_valid = False
+                
+                for dr in [-1, 0, 1]:
+                    for dc in [-1, 0, 1]:
+                        if dr == 0 and dc == 0:
+                            continue
+                        if game.switch_possible(hover_row, hover_col, dr, dc, game.player):
+                            is_valid = True
+                            break 
+                    if is_valid:
+                        break 
+                
+                # only draw the ghost if move is legal
+                if is_valid:
+                    # Calculate X and Y for the hovered square ONLY
+                    x = X_OFFSET_OTHELLO + (hover_col * SQUARESIZE_OTHELLO)
+                    y = Y_OFFSET_OTHELLO + (hover_row * SQUARESIZE_OTHELLO) + 55
+                    
+                    ghost = PINK_BLOCK_SPRITE_GHOST if game.player == 1 else BLACK_BLOCK_SPRITE_GHOST
+                    screen.blit(ghost, (x - 25, y))
+
+    grid_layer = pygame.Surface((WIDTH,HEIGHT),pygame.SRCALPHA)
+    for r in range(ROWS_OTHELLO):
+        for c in range(COLS_OTHELLO):
+            x = X_OFFSET_OTHELLO + (c * SQUARESIZE_OTHELLO)
+            y = Y_OFFSET_OTHELLO + (r * SQUARESIZE_OTHELLO) + 55
+
+            piece = game.board[r,c]
+            if piece == 1:
+                screen.blit(PINK_BLOCK_SPRITE,(x-25,y))
+            elif piece == -1:
+                screen.blit(BLACK_BLOCK_SPRITE,(x-25,y))
+
+            pygame.draw.rect(grid_layer,DARK_PINK,(x,y,SQUARESIZE_OTHELLO,SQUARESIZE_OTHELLO),2)
+    
+    screen.blit(grid_layer,(0,0))
+
+    if game.game_over:
+        banner = pygame.Surface((WIDTH, 150))
+        banner.set_alpha(220)
+        banner.fill(BLACK)
+        screen.blit(banner, (0, HEIGHT//2 - 75))
+    
+        text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+        text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)

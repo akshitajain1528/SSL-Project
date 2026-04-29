@@ -116,7 +116,7 @@ def main(screen, player1, player2,avatar_left,avatar_right):
             # --- BACK TO HUB ---
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return # exits this game and goes back
+                    return winner # exits this game and goes back
 
             if event.type == pygame.MOUSEBUTTONDOWN and not my_game.game_over:
                 mouseX, mouseY = event.pos
@@ -145,6 +145,7 @@ def main(screen, player1, player2,avatar_left,avatar_right):
 
                         my_game.switch_turns()
 
+        pygame.display.update()
 
 if __name__ == "__main__":
     main(screen, None, None)

@@ -90,18 +90,38 @@ def main(screen,player1,player2,avatar_left,avatar_right):
     resume_button = pygame.Rect(WIDTH//2 - 150, HEIGHT//2 + 70, 300, 50)
 
     is_paused = False
-    mx,my = pygame.mouse.get_pos()
-    back_hovering = back_button.collidepoint((mx,my))
+    # back_hovering = back_button.collidepoint((mx,my))
 
 
     while running:
 
         clock.tick(60)
-        
+        mx,my = pygame.mouse.get_pos()
 
         anim_state = (is_anim,anim_col,anim_y,anim_player)
         connect4_frame(screen,my_game,player1,player2,avatar_left,avatar_right,C4_GAME_BG,anim_state,win_data)
 
+        h_back = back_button.collidepoint((mx, my))
+        menu_button(screen, back_button, "BACK", h_back, small_font)
+
+        if is_paused:
+            darken = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+            darken.fill((0, 0, 0, 150))
+            screen.blit(darken, (0, 0))
+
+            screen.blit(C4_PAUSE_BG,(0,0))
+            # pygame.draw.rect(screen, WHITE, pm_rect, 4, border_radius=10)
+
+            text_with_shadow(screen, "TOO EARLY??", title_font, WIDTH//2, HEIGHT//2 - 100, RED_RGBA)
+            
+            h_pm_menu = gm_menu_button.collidepoint((mx, my))
+            menu_button(screen, gm_menu_button, "GAME MENU", h_pm_menu, small_font)
+            
+            h_pm_resume = resume_button.collidepoint((mx, my))
+            menu_button(screen, resume_button, "BACK TO GAME", h_pm_resume, small_font)
+
+        # ONE SINGLE UPDATE CALL AT THE VERY END
+        pygame.display.update()
 
         # --- EVENTS : CONNECT4 ---
         for event in pygame.event.get():
@@ -111,7 +131,7 @@ def main(screen,player1,player2,avatar_left,avatar_right):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return
+                    return win_data[0]
             
             if is_paused:
                 if gm_menu_button.collidepoint((mx,my)):
@@ -164,6 +184,8 @@ def main(screen,player1,player2,avatar_left,avatar_right):
                     win_data = ("Tie",YELLOW,None)
 
                 my_game.switch_turns()
+
+        pygame.display.update()
 
                 
 
