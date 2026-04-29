@@ -4,8 +4,8 @@ import sys
 import os
 import math
 
-from configuration import *
-from renderer import *
+from Core.configuration import *
+from Core.renderer import *
 from game import Game
 
 

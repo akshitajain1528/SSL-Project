@@ -48,10 +48,10 @@ screen = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption("Minecraft Game Hub")
 
 
-from configuration import *
-from renderer import *
-from characters import *
-from league import *
+from Core.configuration import *
+from Core.renderer import *
+from Core.characters import *
+from Core.league import *
 
 ASSETS = 'Assets_MC'
 
@@ -456,7 +456,7 @@ def main_hub(player1,player2):
                     
                     # --- TIC TAC TOE ---
                     if hover_ttt:
-                        import tictactoe
+                        from Games import tictactoe
                         res = tictactoe.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update tictactoe "{player1}" "{player2}" true')
@@ -467,7 +467,7 @@ def main_hub(player1,player2):
 
                     # --- OTHELLO ---
                     elif hover_o: 
-                        import othello
+                        from Games import othello
                         res = othello.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update othello "{player1}" "{player2}" true')
@@ -478,7 +478,7 @@ def main_hub(player1,player2):
 
                     # --- CONNECT 4 ---
                     elif hover_c4:
-                        import connect4
+                        from Games import connect4
                         res = connect4.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update connect4 "{player1}" "{player2}" true')
@@ -650,7 +650,7 @@ def main_hub(player1,player2):
                     if hover_stat_back:
                         current_state = "START_SCREEN"
                     elif hover_start_league:
-                        import league
+                        from Core import league
                         # Store result in 'league_results'
                         league_results = league.start_league(screen, player1, player2, avatar_left, avatar_right)
 

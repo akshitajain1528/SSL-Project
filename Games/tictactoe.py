@@ -3,8 +3,8 @@ import sys
 import numpy as np
 from game import Game
 
-from configuration import *
-from renderer import *
+from Core.configuration import *
+from Core.renderer import *
 
 
 

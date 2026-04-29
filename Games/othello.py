@@ -3,8 +3,8 @@ import sys
 import numpy as np
 from game import Game
 
-from configuration import *
-from renderer import *
+from Core.configuration import *
+from Core.renderer import *
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -87,8 +87,8 @@ class Othello(Game):
             elif white_count > black_count:
                 return -1
             else:
-                return 0  # tie
-        return None  # game not over
+                return 0  
+        return None  
 
 
 def main(screen, player1, player2,avatar_left,avatar_right,is_league=False):
@@ -161,7 +161,6 @@ def main(screen, player1, player2,avatar_left,avatar_right,is_league=False):
             if event.type == pygame.KEYDOWN and not my_game.game_over:
                 if event.key == pygame.K_ESCAPE:
                     is_paused = True
-                    # return winner
                 
             if event.type == pygame.MOUSEBUTTONDOWN and is_paused:
                 if gm_menu_button.collidepoint((mx,my)):

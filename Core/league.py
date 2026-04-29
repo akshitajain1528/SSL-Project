@@ -1,8 +1,8 @@
 
 import pygame
-import tictactoe
-import connect4
-import othello
+from Games import tictactoe
+from Games import connect4
+from Games import othello
 import os
 
 def start_league(screen, player1, player2, avatar_left, avatar_right):
