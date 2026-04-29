@@ -27,11 +27,6 @@ class TicTacToe(Game):
         self.win_anim_progress = 0.0
 
 
-    def draw_winning_line(self):
-        if self.winning_line:
-            pygame.draw.line(screen, GREEN, self.winning_line[0], self.winning_line[1], 5)
-
-
     def mark_square(self,row, col):
         # global player
         self.board[row][col] = self.player   
@@ -87,43 +82,48 @@ class TicTacToe(Game):
             )
             return self.player
 
-        return False
+        elif self.is_full():
+            return 0
+        
+        return None
 
 
-def main(screen, player1, player2):
+def main(screen, player1, player2, avatar_left, avatar_right, is_league=False):
     my_game = TicTacToe()
-    
-
-    # global game_over, player
-
     clock = pygame.time.Clock()
-    # game_over = False  
-    winner,win_color = None,None
-    while True:
+    winner, win_color, win_avatar = None, None, None
+    hover = False
 
-        ttt_frame(screen,my_game,background,player1,player2,winner,win_color)
+    while True:
+        ttt_frame(screen, my_game, background, player1, player2, avatar_left, avatar_right, winner, win_color, win_avatar, is_league)
         clock.tick(60)
 
-        # --- LINE ---
         if my_game.winning_line and my_game.game_over:
-            my_game.win_anim_progress = min(1.0,my_game.win_anim_progress+0.05,)
+            my_game.win_anim_progress = min(1.0, my_game.win_anim_progress + 0.03)
+            
+            if is_league:
+                btn_text = "SHOW RESULTS" if "othello" in sys.modules[__name__].__file__ else "NEXT GAME"
+                btn_rect = pygame.Rect(WIDTH//2 - 150, HEIGHT - 100, 300, 50)
+                hover = btn_rect.collidepoint(pygame.mouse.get_pos())
+                menu_button(screen, btn_rect, btn_text, hover, small_font)
 
-        
-        # --- EVENTS ---
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
 
-            # --- BACK TO HUB ---
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if my_game.game_over and is_league and hover:
+                    return winner
+
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    return winner # exits this game and goes back
+                    return winner
 
             if event.type == pygame.MOUSEBUTTONDOWN and not my_game.game_over:
                 mouseX, mouseY = event.pos
-                if X_OFFSET_TTT<=mouseX<=WIDTH-X_OFFSET_TTT and Y_OFFSET_TTT+30<mouseY<=HEIGHT-20:
-                    col = (mouseX - X_OFFSET_TTT)//SQUARESIZE_TTT
+                if X_OFFSET_TTT <= mouseX <= WIDTH - X_OFFSET_TTT and Y_OFFSET_TTT + 30 < mouseY <= HEIGHT - 20:
+                    col = (mouseX - X_OFFSET_TTT) // SQUARESIZE_TTT
                     row = (mouseY - 55 - Y_OFFSET_TTT) // SQUARESIZE_TTT
 
                     if my_game.available_square(row, col):
@@ -133,14 +133,19 @@ def main(screen, player1, player2):
                             my_game.game_over = True
                             winner = player1
                             win_color = BLUE_RGBA
+                            win_avatar = avatar_left
                         elif my_game.check_win() == -1:
                             my_game.game_over = True
                             winner = player2
                             win_color = YELLOW
+                            win_avatar = avatar_right
+                        elif my_game.check_win() == 0:
+                            my_game.game_over = True
+                            winner = "Tie"
+                            win_color = RED_RGBA
 
                         my_game.switch_turns()
 
         pygame.display.update()
-
 if __name__ == "__main__":
     main(screen, None, None)

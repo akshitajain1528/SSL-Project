@@ -5,12 +5,9 @@ import os
 import matplotlib.pyplot as plt
 import csv
 
+
 os.environ["SDL_AUDIODRIVER"] = "dummy" 
 
-
-# ============
-# Game Class
-# ============
 
 class Game:
 
@@ -43,7 +40,7 @@ class Game:
     
 
 
-# --- Initialising pygame ---
+# --- INITIALIZING PYGAME ---
 pygame.init()
 pygame.mixer.init()
 WIDTH, HEIGHT = 1200, 800
@@ -53,7 +50,8 @@ pygame.display.set_caption("Minecraft Game Hub")
 
 from configuration import *
 from renderer import *
-
+from characters import *
+from league import *
 
 ASSETS = 'Assets_MC'
 
@@ -64,6 +62,7 @@ GAME_BG = pygame.transform.scale(bg_img,(WIDTH,HEIGHT))
 stat_bg_path = os.path.join(ASSETS,'leaderboard_bg.jpg')
 stat_bg_img = pygame.image.load(stat_bg_path).convert()
 stat_bg = pygame.transform.scale(stat_bg_img,(WIDTH,HEIGHT))
+is_league = False
 
 
 # --- SOUND EFFECTS ---
@@ -185,6 +184,11 @@ def refresh_plots():
 # ==========================
 
 def main_hub(player1,player2):
+
+    results = [] 
+    league_winner = None
+    final_score = ""
+    winner_avatar = None
     global popularity_pie, overall_bar
     run = True
 
@@ -194,6 +198,7 @@ def main_hub(player1,player2):
     terminal_message_timer = 0
 
     current_state = "START_SCREEN"
+    
 
     # --- BUTTON RECTANGLES: START SCREEN ---
     btn_start_game_menu = pygame.Rect(WIDTH//2-200,300,400,60)
@@ -208,24 +213,12 @@ def main_hub(player1,player2):
     btn_dog_l = pygame.Rect(125,480,110,100)
     btn_steve_l = pygame.Rect(125,590,110,100)
 
-    btn_zombie_char_l = pygame.Rect(50,270,250,250)
-    btn_pig_char_l = pygame.Rect(50,270,250,250)
-    btn_dog_char_l = pygame.Rect(50,270,250,250)
-    btn_steve_char_l = pygame.Rect(50,270,250,250)
-
-    btn_zombie_char_r = pygame.Rect(WIDTH-300,270,250,250)
-    btn_pig_char_r = pygame.Rect(WIDTH-300,270,250,250)
-    btn_dog_char_r = pygame.Rect(WIDTH-300,270,250,250)
-    btn_steve_char_r = pygame.Rect(WIDTH-300,270,250,250)
-
     btn_zombie_r = pygame.Rect(975,260,110,100)
     btn_pig_r = pygame.Rect(975,370,110,100)
     btn_dog_r = pygame.Rect(975,480,110,100)
     btn_steve_r = pygame.Rect(975,590,110,100)
 
     # --- WIREBOXES AROUND IT ---
-    box_character_left = pygame.Rect(50,150,200,50)
-    box_character_right = pygame.Rect(WIDTH-250,150,200,50)
     box_left_panel = pygame.Rect(50,250,250,480)
     box_right_panel = pygame.Rect(WIDTH-300,250,250,480)
 
@@ -234,35 +227,51 @@ def main_hub(player1,player2):
     btn_tictactoe = pygame.Rect(WIDTH//2 - 200, 300, 400, 60)
     btn_othello = pygame.Rect(WIDTH//2 - 200, 400, 400, 60)
     btn_connect4 = pygame.Rect(WIDTH//2 - 200, 500, 400, 60)
-    btn_back = pygame.Rect(WIDTH//2 - 200, 650, 400, 60)
+    btn_league = pygame.Rect(WIDTH//2 - 200, 585, 400, 90)
+    btn_back = pygame.Rect(WIDTH//2 - 200, 700, 400, 60)
     
-    buttons_left = True
-    buttons_right = True
-    char_left = None
-    char_right = None
+    # --- VARIBLES FOR CHARACTERS ---
+    buttons_left,buttons_right = True,True  # TRUE WHEN LEFT/RIGHT DROP DOWN MENU IS OPEN
+    avatar_left,avatar_right = None, None
+    show_avatar_warning = False
+
+    left_panel_data = {
+    'panel': box_left_panel,
+    'characters': {'zombie': btn_zombie_l, 'pig': btn_pig_l, 'dog': btn_dog_l, 'steve': btn_steve_l}
+}
+    right_panel_data = {
+        'panel': box_right_panel,
+        'characters': {'zombie': btn_zombie_r, 'pig': btn_pig_r, 'dog': btn_dog_r, 'steve': btn_steve_r}
+    }
+
+    clock = pygame.time.Clock()
 
     while run:
+        clock.tick(60)
         screen.blit(GAME_BG,(0,0))
 
         mx,my = pygame.mouse.get_pos()
-        h_zombie_r = btn_zombie_r.collidepoint((mx,my))
-        h_pig_r = btn_pig_r.collidepoint((mx,my))
-        h_dog_r = btn_dog_r.collidepoint((mx,my))
-        h_steve_r = btn_steve_r.collidepoint((mx,my))
-
-        h_zombie_l = btn_zombie_l.collidepoint((mx,my))
-        h_pig_l = btn_pig_l.collidepoint((mx,my))
-        h_dog_l = btn_dog_l.collidepoint((mx,my))
-        h_steve_l = btn_steve_l.collidepoint((mx,my))
 
 
 
-
-        # ===================================
-        #      FRIST PAGE: START SCREEN
-        # ===================================
+                                # ==============================================
+                                # ==============================================
+                                #             FRIST PAGE: START SCREEN
+                                # ==============================================
+                                # ==============================================
 
         if current_state=="START_SCREEN":
+
+            draw_chr_panels(screen, mx, my, buttons_left, buttons_right, left_panel_data, right_panel_data)
+            draw_selected_characters(screen, avatar_left, avatar_right, mx, my, small_font)
+
+        # --- WARNING POPUP ---
+            if show_avatar_warning:
+                warning_box = pygame.Rect(WIDTH//2 - 450, HEIGHT - 100, 900, 50)
+                pygame.draw.rect(screen, (200, 0, 0), warning_box, border_radius=2)
+                pygame.draw.rect(screen, WHITE, warning_box, 3, border_radius=2)
+                text_with_shadow(screen, "PLEASE SELECT BOTH AVATARS FIRST!", button_font, WIDTH//2, HEIGHT - 75, WHITE)
+
 
             # --- WELCOME TO GAMECRAFT ---
             text_with_shadow(screen,'WELCOME TO',title_font,WIDTH//2,80,WHITE)
@@ -286,97 +295,29 @@ def main_hub(player1,player2):
             h_quit = btn_start_quit.collidepoint((mx,my))
             menu_button(screen,btn_start_quit,"QUIT",h_quit)
 
-            # --- CHARACTER SELECTION HOVERABLE IMAGES ---
 
-            if buttons_left:
-                wireframe_box(screen,box_left_panel)
-
-                h_zombie_l = btn_zombie_l.collidepoint((mx,my))
-                image_button(screen,btn_zombie_l,zombie_img,h_zombie_l)
-
-                h_pig_l = btn_pig_l.collidepoint((mx,my))
-                image_button(screen,btn_pig_l,pig_img,h_pig_l)
-
-                h_dog_l = btn_dog_l.collidepoint((mx,my))
-                image_button(screen,btn_dog_l,dog_img,h_dog_l)
-
-                h_steve_l = btn_steve_l.collidepoint((mx,my))
-                image_button(screen,btn_steve_l,steve_img,h_steve_l)
-
-            if buttons_right:
-                wireframe_box(screen,box_right_panel)
-
-                h_zombie_r = btn_zombie_r.collidepoint((mx,my))
-                image_button(screen,btn_zombie_r,zombie_img,h_zombie_r)
-
-                h_pig_r = btn_pig_r.collidepoint((mx,my))
-                image_button(screen,btn_pig_r,pig_img,h_pig_r)
-
-                h_dog_r = btn_dog_r.collidepoint((mx,my))
-                image_button(screen,btn_dog_r,dog_img,h_dog_r)
-
-                h_steve_r = btn_steve_r.collidepoint((mx,my))
-                image_button(screen,btn_steve_r,steve_img,h_steve_r)
-
-            if char_left=="zombie":
-                h_zombie_char_l = btn_zombie_char_l.collidepoint((mx,my))
-                image_button(screen,btn_zombie_char_l,zombie_img,h_zombie_l)
-
-            if char_left=="pig":
-                h_pig_char_l = btn_pig_char_l.collidepoint((mx,my))
-                image_button(screen,btn_pig_char_l,pig_img,h_pig_l)
-
-            if char_left=="dog":
-                h_dog_char_l = btn_dog_char_l.collidepoint((mx,my))
-                image_button(screen,btn_dog_char_l,dog_img,h_dog_l)
-            
-            if char_left=="steve":
-                h_steve_char_l = btn_steve_char_l.collidepoint((mx,my))
-                image_button(screen,btn_steve_char_l,steve_img,h_steve_l)
-
-            if char_right=="zombie":
-                h_zombie_char_r = btn_zombie_char_r.collidepoint((mx,my))
-                image_button(screen,btn_zombie_char_r,zombie_img,h_zombie_r)
-
-            if char_right=="pig":
-                h_pig_char_r = btn_pig_char_r.collidepoint((mx,my))
-                image_button(screen,btn_pig_char_r,pig_img,h_pig_r)
-
-            if char_right=="dog":
-                h_dog_char_r = btn_dog_char_r.collidepoint((mx,my))
-                image_button(screen,btn_dog_char_r,dog_img,h_dog_r)
-
-            if char_right=="steve":
-                h_steve_char_r = btn_steve_char_r.collidepoint((mx,my))
-                image_button(screen,btn_steve_char_r,steve_img,h_steve_r)
-
-
-
-            # --- SKETCH BOXES ---
-            wireframe_box(screen,box_character_left,"CHARACTER")
-            wireframe_box(screen,box_character_right,"CHARACTER")
-
-            # ---LEADRERBOARD---
-            btn_lb_display = pygame.Rect(WIDTH//2 - 250, 350, 500, 60)
-            hover_lb_display = btn_lb_display.collidepoint((mx, my))
-
-
-            # --- EVENT LISTENERS: START PAGE ---
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    run=False
+                    run = False
+
                 if event.type == pygame.MOUSEBUTTONDOWN:
 
+                    # --- GAME MENU BUTTON CLICK
                     if h_menu:
-                        current_state="GAME_MENU"
+                        if avatar_left and avatar_right:
+                            current_state = "GAME_MENU"
+                            show_avatar_warning = False
+                        else:
+                            show_avatar_warning = True
 
-                    elif h_play:
-                        print("HOW TO PLAY")
+                    if h_play:
                         current_state="HOWTOPLAY"
+                        print("HOW TO PLAY")
 
-                    elif h_leaderboard:
+                    
+                    if h_leaderboard:
                         current_state="LEADERBOARD"
-                        print('LEADERBOARD')
+                        print("Leaderboard")
 
                     elif h_stats:
                         refresh_plots()
@@ -387,67 +328,99 @@ def main_hub(player1,player2):
                         pygame.quit()
                         sys.exit()
 
-                    elif h_zombie_l:
-                        current_state="START_SCREEN"
-                        print("Player 1 chose Zombie!")
-                        buttons_left = False
-                        char_left = "zombie"
 
-                    
-                    elif h_pig_l:   
-                        current_state="START_SCREEN"
-                        print("Player 1 chose Pig!")
-                        buttons_left = False
-                        char_left = "pig"
 
-                    elif h_dog_l:
-                        current_state="START_SCREEN"
-                        print("Player 1 chose Dog!")
-                        buttons_left = False
-                        char_left = "dog"
-                       
-                    
-                    elif h_steve_l:
-                        current_state="START_SCREEN"
-                        print("Player 1 chose Steve!")
-                        buttons_left = False
-                        char_left = "steve"
-               
-                    
-                    elif h_zombie_r:
-                        current_state="START_SCREEN"
-                        print("Player 2 chose Zombie!")
-                        buttons_right = False
-                        char_right = "zombie"
-               
+                    if avatar_left and current_state=="START_SCREEN":
+                        reselect_btn_l = pygame.Rect(50, 220, 270, 45)
+                        if reselect_btn_l.collidepoint((mx, my)):
+                            avatar_left = None
+                            buttons_left = True
 
-                    elif h_pig_r:
-                        current_state="START_SCREEN"
-                        print("Player 2 chose Pig!")
-                        buttons_right = False
-                        char_right = "pig"
-          
+                    # --- CLICKING A CHARACTER INSIDE THE LEFT MENU ---
+                    if buttons_left:
+                        for name, rect in left_panel_data['characters'].items():
+                            if rect.collidepoint((mx, my)):  
+                                avatar_left = name              
+                                buttons_left = False        
+                                show_avatar_warning = False
 
-                    elif h_dog_r:
-                        current_state="START_SCREEN"
-                        print("Player 2 chose Dog!")
-                        buttons_right = False
-                        char_right = "dog"
+                        
+
+
+                    if avatar_right and current_state=="START_SCREEN":
+                        reselect_btn_l = pygame.Rect(WIDTH-320, 220, 270, 40)
+                        if reselect_btn_l.collidepoint((mx, my)):
+                            avatar_right = None
+                            buttons_right = True
+
+                    # --- CLICKING A CHARACTER INSIDE THE LEFT MENU ---
+                    if buttons_right: 
+                        for name, rect in right_panel_data['characters'].items():
+                            if rect.collidepoint((mx, my)):   
+                                avatar_right = name              
+                                buttons_right = False     
+                                show_avatar_warning = False
+
                 
 
-                    elif h_steve_r:
+    # ====================================
+    #             HOW TO PLAY
+    # ====================================
+
+        elif current_state=="HOWTOPLAY":
+        
+            bg = os.path.join(ASSETS,'howtoplay.jpeg')
+            bg_image = pygame.image.load(bg).convert()
+            howtoplay_bg = pygame.transform.scale(bg_image,(WIDTH,HEIGHT))
+
+            screen.blit(howtoplay_bg,(0,0))
+
+            def htp_box(screen,rect,text=""):
+                pygame.draw.rect(screen,STONE_GREY,rect,width=3,border_radius=10)
+
+                if text:
+                    label = small_font.render(text,False,OBSIDIAN_BLACK)
+                    screen.blit(label, label.get_rect(center=rect.center))
+
+            # text_with_shadow(screen,f"HOW TO PLAY?",button_font,750,120,STONE_GREY)
+            box_character = pygame.Rect(590,100,300,50)
+            htp_box(screen,box_character,"HOW TO PLAY?")
+
+            btn_htpback = pygame.Rect(WIDTH//2 - 480, 680, 250, 60)
+
+            hover_back = btn_htpback.collidepoint((mx,my))
+            menu_button(screen,btn_htpback, "Back",hover_back)
+
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if hover_back:
                         current_state="START_SCREEN"
-                        print("Player 2 chose Steve!")
-                        buttons_right = False
-                        char_right = "steve"
-              
 
 
-        # ====================================
-        #        2ND PAGE: GAME MENU
-        # ====================================
+                        # =======================================================
+                        # =======================================================
+                        #                   2ND PAGE: GAME MENU
+                        # =======================================================
+                        # =======================================================
+
+
 
         elif current_state=="GAME_MENU":
+                # --- CHARACTER ---
+            rect_left = pygame.Rect(50,150,200,50)
+            rect_right = pygame.Rect(WIDTH-250,150,200,50)
+            wireframe_box(screen, rect_left, "CHARACTER")
+            wireframe_box(screen, rect_right, "CHARACTER")
+
+
+            avatar = pygame.transform.scale(CHAR_IMAGES_L[avatar_left], (250, 250)) 
+            screen.blit(avatar, (50,300))
+
+            avatar = pygame.transform.scale(CHAR_IMAGES_R[avatar_right], (250, 250)) 
+            screen.blit(avatar, (WIDTH-300,300))
 
             # --- ADD TEXT ---
             text_with_shadow(screen,"GAMECRAFT",title_font,WIDTH//2,80,WHITE)
@@ -464,6 +437,9 @@ def main_hub(player1,player2):
             hover_c4 = btn_connect4.collidepoint((mx,my))
             menu_button(screen,btn_connect4, "Connect 4",hover_c4)
 
+            hover_league = btn_league.collidepoint((mx,my))
+            menu_button(screen, btn_league, "START LEAGUE", hover_league)
+
             hover_back = btn_back.collidepoint((mx,my))
             menu_button(screen,btn_back, "Back",hover_back)
 
@@ -479,7 +455,7 @@ def main_hub(player1,player2):
                     # --- TIC TAC TOE ---
                     if hover_ttt:
                         import tictactoe
-                        res = tictactoe.main(screen, player1, player2)
+                        res = tictactoe.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update tictactoe "{player1}" "{player2}" true')
                         elif res:
@@ -490,7 +466,7 @@ def main_hub(player1,player2):
                     # --- OTHELLO ---
                     elif hover_o: 
                         import othello
-                        res = othello.main(screen, player1, player2)
+                        res = othello.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update othello "{player1}" "{player2}" true')
                         elif res:
@@ -501,7 +477,7 @@ def main_hub(player1,player2):
                     # --- CONNECT 4 ---
                     elif hover_c4:
                         import connect4
-                        res = connect4.main(screen, player1, player2)
+                        res = connect4.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update connect4 "{player1}" "{player2}" true')
                         elif res:
@@ -509,11 +485,12 @@ def main_hub(player1,player2):
                             os.system(f'bash leaderboard.sh update connect4 "{res}" "{loser}" false')
                             refresh_plots()
 
-                    elif hover_back:
-                        current_state = "START_SCREEN"
+                    elif hover_league:
+                        current_state = "LEAGUE"
+                        is_league = True
 
                     elif hover_back:
-                        current_state="START_SCREEN"
+                        current_state = "START_SCREEN"
 
     # ====================================
     #        2ND PAGE: STATISTICS
@@ -544,46 +521,10 @@ def main_hub(player1,player2):
                     if hover_stat_back:
                         current_state="START_SCREEN"
 
-
     # ====================================
-    #        2ND PAGE: HOW TO PLAY
+    #        2ND PAGE: LEADERBOARD
     # ====================================
 
-        elif current_state=="HOWTOPLAY":
-        
-            bg = os.path.join(ASSETS,'howtoplay.jpeg')
-            bg_image = pygame.image.load(bg).convert()
-            howtoplay_bg = pygame.transform.scale(bg_image,(WIDTH,HEIGHT))
-
-            screen.blit(howtoplay_bg,(0,0))
-
-            def htp_box(screen,rect,text=""):
-                pygame.draw.rect(screen,STONE_GREY,rect,width=3,border_radius=10)
-
-                if text:
-                    label = small_font.render(text,False,OBSIDIAN_BLACK)
-                    screen.blit(label, label.get_rect(center=rect.center))
-
-            # text_with_shadow(screen,f"HOW TO PLAY?",button_font,750,120,STONE_GREY)
-            box_character = pygame.Rect(590,100,300,50)
-            htp_box(screen,box_character,"HOW TO PLAY?")
-
-            btn_htpback = pygame.Rect(WIDTH//2 - 480, 680, 250, 60)
-
-            hover_back = btn_htpback.collidepoint((mx,my))
-            menu_button(screen,btn_htpback, "Back",hover_back)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    run = False
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if hover_back:
-                        current_state="START_SCREEN"
-
-
-        # ====================================
-        #        2ND PAGE: LEADERBOARD
-        # ====================================
 
         elif current_state=="LEADERBOARD":
 
@@ -685,8 +626,78 @@ def main_hub(player1,player2):
                         terminal_message = "Leaderboard displayed on terminal!"
                         terminal_message_timer = pygame.time.get_ticks()
 
+        # ====================================
+        #            LEAGUE PAGE
+        # ====================================
+        elif current_state == "LEAGUE":
+            screen.blit(stat_bg, (0, 0))
+            text_with_shadow(screen, "LEAGUE", title_font, WIDTH//2, 80, WHITE)
 
+            btn_start_league = pygame.Rect(WIDTH//2 - 200, 550, 400, 110)
+            hover_start_league = btn_start_league.collidepoint((mx, my))
+            menu_button(screen, btn_start_league, "START", hover_start_league)
+
+            btn_stat_back = pygame.Rect(WIDTH//2 - 200, 700, 400, 60)
+            hover_stat_back = btn_stat_back.collidepoint((mx, my))
+            menu_button(screen, btn_stat_back, "Back", hover_stat_back)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if hover_stat_back:
+                        current_state = "START_SCREEN"
+                    elif hover_start_league:
+                        import league
+                        # Store result in 'league_results'
+                        league_results = league.start_league(screen, player1, player2, avatar_left, avatar_right)
+
+                        # --- CALCULATE LEAGUE WINNER ---
+                        p1_wins = league_results.count(player1)
+                        p2_wins = league_results.count(player2)
+                        
+                        if p1_wins > p2_wins:
+                            league_winner = player1
+                        elif p2_wins > p1_wins:
+                            league_winner = player2
+                        else:
+                            league_winner = "Draw"
+                            
+                        final_score = f"{p1_wins} - {p2_wins}"
+                        
+                        # Update plots in background
+                        refresh_plots()
+                        
+                        current_state = "LEAGUE_CHAMPION_SCREEN"
+
+        # ====================================
+        #       LEAGUE CHAMPION SCREEN
+        # ====================================
+        elif current_state == "LEAGUE_CHAMPION_SCREEN":
+            screen.blit(stat_bg, (0, 0)) 
+            
+            text_with_shadow(screen, "LEAGUE RESULTS", title_font, WIDTH//2, 80, WHITE)
+            text_with_shadow(screen, f"FINAL SCORE: {final_score}", button_font, WIDTH//2, 180, YELLOW)
+
+            if league_winner == "Draw":
+                text_with_shadow(screen, "IT'S A TIE!", title_font, WIDTH//2, HEIGHT//2, WHITE)
+            else:
+                text_with_shadow(screen, f"{league_winner} IS THE", title_font, WIDTH//2, 300, BLACK)
+                text_with_shadow(screen, "LEAGUE CHAMPION!", title_font, WIDTH//2, 400, BLACK)
+
+            btn_finish = pygame.Rect(WIDTH//2 - 150, 700, 300, 60)
+            h_finish = btn_finish.collidepoint(pygame.mouse.get_pos())
+            menu_button(screen, btn_finish, "BACK TO HUB", h_finish)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN and h_finish:
+                    current_state = "START_SCREEN"
+
+    
         pygame.display.update()
+
 
 if __name__ == '__main__':
     game = Game()
