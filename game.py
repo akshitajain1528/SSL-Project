@@ -63,7 +63,9 @@ stat_bg_path = os.path.join(ASSETS,'leaderboard_bg.jpg')
 stat_bg_img = pygame.image.load(stat_bg_path).convert()
 stat_bg = pygame.transform.scale(stat_bg_img,(WIDTH,HEIGHT))
 is_league = False
-
+league_bg_path = os.path.join(ASSETS,'image.png')
+league_bg = pygame.image.load(league_bg_path).convert()
+league_bg = pygame.transform.scale(league_bg,(WIDTH,HEIGHT))
 
 # --- SOUND EFFECTS ---
 click_path = os.path.join(ASSETS,'click.mp3')
@@ -630,7 +632,7 @@ def main_hub(player1,player2):
         #            LEAGUE PAGE
         # ====================================
         elif current_state == "LEAGUE":
-            screen.blit(stat_bg, (0, 0))
+            screen.blit(league_bg, (0, 0))
             text_with_shadow(screen, "LEAGUE", title_font, WIDTH//2, 80, WHITE)
 
             btn_start_league = pygame.Rect(WIDTH//2 - 200, 550, 400, 110)
