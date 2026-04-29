@@ -2,6 +2,7 @@ import pygame
 import os
 import math
 from configuration import *
+import sys
 
 # --- FONTS ---
 font_modern = os.path.join(ASSETS,'font_modern.otf')
@@ -107,7 +108,7 @@ def wireframe_box(screen,rect,text=""):
         screen.blit(label, label.get_rect(center=rect.center))
 
 
-def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,anim_state,win_data):
+def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,anim_state,win_data,is_league=False):
     is_anim,anim_col,anim_y,anim_player = anim_state
     winner,win_color,win_avatar = win_data
 
@@ -172,33 +173,59 @@ def connect4_frame(screen,game,player1,player2,avatar_left,avatar_right,bg_img,a
             pygame.draw.rect(grid_layer,(0,0,0,150),(x,y,SQUARESIZE_C4,SQUARESIZE_C4),2)
 
     screen.blit(grid_layer,(0,0))
-
-    # --- WINNNING TEXT ---
-
+    
     if game.game_over:
-        banner = pygame.Surface((WIDTH, 150))
-        banner.set_alpha(220)
-        banner.fill(BLACK)
-        screen.blit(banner, (0, HEIGHT//2 - 75))
+        if is_league:
+            banner = pygame.Surface((WIDTH, 150))
+            banner.set_alpha(220)
+            banner.fill(BLACK)
+            screen.blit(banner, (0, HEIGHT//2 - 75))
 
-        if winner == player1:
-            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
-            avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
-            screen.blit(avatar, (50,200))
+            if winner == player1:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+                avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+                screen.blit(avatar, (50,200))
+
+            elif winner == player2:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+                # text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
+                avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+                screen.blit(avatar, (WIDTH-490,200))
+            
+            elif winner == "Tie":
+                text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+                # text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+
+           
+            btn_text = "SHOW RESULTS" if "othello" in sys.modules[__name__].__file__ else "NEXT GAME"
+            btn_rect = pygame.Rect(WIDTH//2 - 150, HEIGHT - 100, 300, 50)
+            hover = btn_rect.collidepoint((mx, my))
+            menu_button(screen, btn_rect, btn_text, hover, small_font)
+            
+        else:
+            banner = pygame.Surface((WIDTH, 150))
+            banner.set_alpha(220)
+            banner.fill(BLACK)
+            screen.blit(banner, (0, HEIGHT//2 - 75))
         
-        if winner == player2:
-            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-210, HEIGHT//2 + 40, WHITE)
-            avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
-            screen.blit(avatar, (WIDTH-490,200))
-        
-        elif winner == "Tie":
-            text_with_shadow(screen, f"It's a TIE", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+            if winner == player1:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
+                avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+                screen.blit(avatar, (50,200))
+
+            elif winner == player2:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
+                avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+                screen.blit(avatar, (WIDTH-490,200))
+            
+            elif winner == "Tie":
+                text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
 
 
-def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar):
+def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar,is_league=False):
 
     # --- BACKGROUND ---
     screen.blit(background,(0,0))
@@ -256,26 +283,54 @@ def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,wi
     screen.blit(grid_layer,(0,0))
 
     if game.game_over and game.win_anim_progress==1:
-        banner = pygame.Surface((WIDTH, 150))
-        banner.set_alpha(220)
-        banner.fill(BLACK)
-        screen.blit(banner, (0, HEIGHT//2 - 75))
-    
-        if winner == player1:
-            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
-            avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
-            screen.blit(avatar, (50,200))
+        if is_league:
+            banner = pygame.Surface((WIDTH, 150))
+            banner.set_alpha(220)
+            banner.fill(BLACK)
+            screen.blit(banner, (0, HEIGHT//2 - 75))
 
-        elif winner == player2:
-            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
-            avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
-            screen.blit(avatar, (WIDTH-490,200))
+            if winner == player1:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+                avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+                screen.blit(avatar, (50,200))
+
+            elif winner == player2:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+                # text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
+                avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+                screen.blit(avatar, (WIDTH-490,200))
+            
+            elif winner == "Tie":
+                text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+                # text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+
+           
+            btn_text = "SHOW RESULTS" if "othello" in sys.modules[__name__].__file__ else "NEXT GAME"
+            btn_rect = pygame.Rect(WIDTH//2 - 150, HEIGHT - 100, 300, 50)
+            hover = btn_rect.collidepoint((mx, my))
+            menu_button(screen, btn_rect, btn_text, hover, small_font)
+
+        else:
+            banner = pygame.Surface((WIDTH, 150))
+            banner.set_alpha(220)
+            banner.fill(BLACK)
+            screen.blit(banner, (0, HEIGHT//2 - 75))
         
-        elif winner == "Tie":
-            text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+            if winner == player1:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
+                avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+                screen.blit(avatar, (50,200))
+
+            elif winner == player2:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
+                avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+                screen.blit(avatar, (WIDTH-490,200))
+            
+            elif winner == "Tie":
+                text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
 
 
     if game.game_over and game.winning_line and not game.win_anim_progress == 1:
@@ -299,10 +354,7 @@ def ttt_frame(screen,game,background,player1,player2,avatar_left,avatar_right,wi
             # pygame.draw.rect(screen, (170, 0, 0), rect, 3) # Dark Red border
             screen.blit(REDSTONE_SPRITE,center)
 
-
-
-def othello_frame(screen,game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar):
-    # --- BACKGROUND ---
+def othello_frame(screen,game,background,player1,player2,avatar_left,avatar_right,winner,win_color,win_avatar,is_league):
     screen.blit(background,(0,0))
     board = pygame.Surface((SQUARESIZE_OTHELLO*COLS_OTHELLO+50,SQUARESIZE_OTHELLO*ROWS_OTHELLO+50),pygame.SRCALPHA)
     board.fill(DARK_PINK)
@@ -380,26 +432,52 @@ def othello_frame(screen,game,background,player1,player2,avatar_left,avatar_righ
     
     screen.blit(grid_layer,(0,0))
 
-
-    # --- WIN CONDITION ---
     if game.game_over:
-        banner = pygame.Surface((WIDTH, 150))
-        banner.set_alpha(220)
-        banner.fill(BLACK)
-        screen.blit(banner, (0, HEIGHT//2 - 75))
+        if is_league:
+            banner = pygame.Surface((WIDTH, 150))
+            banner.set_alpha(220)
+            banner.fill(BLACK)
+            screen.blit(banner, (0, HEIGHT//2 - 75))
 
-        if winner == player1:
-            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
-            avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
-            screen.blit(avatar, (50,200))
+            if winner == player1:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+                # avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+                # screen.blit(avatar, (50,200))
 
-        elif winner == player2:
-            text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
-            avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
-            screen.blit(avatar, (WIDTH-490,200))
+            elif winner == player2:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+                # text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
+                # avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+                # screen.blit(avatar, (WIDTH-490,200))
+            
+            elif winner == "Tie":
+                text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+                # text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+
+           
+            btn_text = "SHOW RESULTS"
+            btn_rect = pygame.Rect(WIDTH//2 - 150, HEIGHT - 100, 300, 50)
+            hover = btn_rect.collidepoint((mx, my))
+            menu_button(screen, btn_rect, btn_text, hover, small_font)
+            
+        else:
+            banner = pygame.Surface((WIDTH, 150))
+            banner.set_alpha(220)
+            banner.fill(BLACK)
+            screen.blit(banner, (0, HEIGHT//2 - 75))
         
-        elif winner == "Tie":
-            text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
-            text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)
+            if winner == player1:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2+200, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2+210, HEIGHT//2 + 40, WHITE)
+                avatar = pygame.transform.scale(CHAR_IMAGES_L[win_avatar], (450,450)) 
+                screen.blit(avatar, (50,200))
+
+            elif winner == player2:
+                text_with_shadow(screen, f"{winner} WINS!", medium_font, WIDTH//2-200, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2-200, HEIGHT//2 + 40, WHITE)
+                avatar = pygame.transform.scale(CHAR_IMAGES_R[win_avatar], (450,450)) 
+                screen.blit(avatar, (WIDTH-490,200))
+            
+            elif winner == "Tie":
+                text_with_shadow(screen, f"It's a Tie", medium_font, WIDTH//2, HEIGHT//2 - 20, win_color)
+                text_with_shadow(screen, "Press ESC to return to Hub", medium_font, WIDTH//2, HEIGHT//2 + 40, WHITE)

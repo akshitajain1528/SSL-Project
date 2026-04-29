@@ -91,7 +91,7 @@ class Othello(Game):
         return None  # game not over
 
 
-def main(screen, player1, player2,avatar_left,avatar_right):
+def main(screen, player1, player2,avatar_left,avatar_right,is_league=False):
 
     my_game = Othello()
     clock = pygame.time.Clock()
@@ -103,13 +103,12 @@ def main(screen, player1, player2,avatar_left,avatar_right):
     resume_button = pygame.Rect(WIDTH//2 + 250, HEIGHT//2 + 70, 300, 50)
 
     is_paused = False
-
     display_message = ""
     message_timer = 0
-    font = pygame.font.Font(None, 48)
+    hover = False
 
     while True:
-        othello_frame(screen, my_game, background, player1, player2,avatar_left,avatar_right, winner, win_color,win_avatar)
+        othello_frame(screen, my_game, background, player1, player2,avatar_left,avatar_right, winner, win_color,win_avatar,is_league)
 
         clock.tick(60)
         mx,my = pygame.mouse.get_pos()
@@ -129,11 +128,35 @@ def main(screen, player1, player2,avatar_left,avatar_right):
             resume = resume_button.collidepoint((mx, my))
             menu_button(screen, resume_button, "BACK TO GAME", resume, small_font)
         
+        
 
+        # 2. League Button Logic (Draw AFTER the frame)
+        if my_game.game_over and is_league:
+            btn_rect = pygame.Rect(WIDTH//2 - 150, HEIGHT - 100, 300, 50)
+            hover = btn_rect.collidepoint(pygame.mouse.get_pos())
+            menu_button(screen, btn_rect, "SHOW RESULTS", hover, small_font)
+
+        # 3. Message Banner Logic
+        if display_message:
+            current_time = pygame.time.get_ticks()
+            if current_time - message_timer < 3000:
+                banner = pygame.Surface((WIDTH, 150))
+                banner.set_alpha(220)
+                banner.fill(BLACK)
+                screen.blit(banner, (0, HEIGHT//2 - 75))
+                text_with_shadow(screen, display_message, medium_font, WIDTH//2, HEIGHT//2 - 20, WHITE)
+            else:
+                display_message = ""
+
+        # 4. Event Handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if my_game.game_over and is_league and hover:
+                    return winner
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:

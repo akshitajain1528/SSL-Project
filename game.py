@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import csv
 
+
 os.environ["SDL_AUDIODRIVER"] = "dummy" 
 
 
@@ -50,6 +51,7 @@ pygame.display.set_caption("Minecraft Game Hub")
 from configuration import *
 from renderer import *
 from characters import *
+from league import *
 
 ASSETS = 'Assets_MC'
 
@@ -60,7 +62,10 @@ GAME_BG = pygame.transform.scale(bg_img,(WIDTH,HEIGHT))
 stat_bg_path = os.path.join(ASSETS,'leaderboard_bg.jpg')
 stat_bg_img = pygame.image.load(stat_bg_path).convert()
 stat_bg = pygame.transform.scale(stat_bg_img,(WIDTH,HEIGHT))
-
+is_league = False
+league_bg_path = os.path.join(ASSETS,'image.png')
+league_bg = pygame.image.load(league_bg_path).convert()
+league_bg = pygame.transform.scale(league_bg,(WIDTH,HEIGHT))
 
 # --- SOUND EFFECTS ---
 click_path = os.path.join(ASSETS,'click.mp3')
@@ -113,39 +118,33 @@ ttt=0
 othello=0
 c4=0
 
-# with open("history.csv", "r") as f:
-#     for line in f:
-#         if line.strip():
-#             user, g, w, l = line.strip().split(',')
-#             if g == "tictactoe":
-#                 ttt += int(w) + int(l)
-#             elif g == "othello":
-#                 othello += int(w) + int(l)
-#             elif g == "connect4":
-#                 c4 += int(w) + int(l)
 
-# games = ["Tic Tac Toe", "Othello", "Connect 4"]
-# plays = [ttt, othello, c4]
+with open("history.csv", "r") as f:
+    player_stats = {}
+    for line in f:
+        if line.strip():
+            user, g, w, l = line.strip().split(',') 
+            if user not in player_stats:
+                player_stats[user] = {"w": 0, "l": 0}
+            player_stats[user]["w"] += int(w)
+            player_stats[user]["l"] += int(l)
+top_players = sorted(player_stats.items(), key=lambda x: x[1]["w"], reverse=True)[:3]
+players = [p[0] for p in top_players]
+wins = [p[1]["w"] for p in top_players]
 
-# plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
-# plt.title("Game Popularity")
-# plt.savefig("game_popularity.png")
-# plt.close()
+with open("history.csv", "r") as f:
+    for line in f:
+        if line.strip():
+            user, g, w, l = line.strip().split(',')
+            if g == "tictactoe":
+                ttt += int(w) + int(l)
+            elif g == "othello":
+                othello += int(w) + int(l)
+            elif g == "connect4":
+                c4 += int(w) + int(l)
 
-# popularity_pie= pygame.image.load("game_popularity.png").convert_alpha()
-
-
-
-
-# plt.bar(players, wins, color=['green', 'blue', 'red'])
-# plt.title("Top Players by Total Wins")
-# plt.xlabel("Players")
-# plt.ylabel("Wins")
-# plt.savefig("top_players_overall.png")
-# plt.close()
-
-# overall_bar = pygame.image.load("top_players_overall.png").convert_alpha()
-    
+games = ["Tic Tac Toe", "Othello", "Connect 4"]
+plays = [ttt, othello, c4]
 
 
 def refresh_plots():
@@ -153,18 +152,6 @@ def refresh_plots():
     global ttt, othello, c4
     global games, plays, players, wins 
 
-    with open("history.csv", "r") as f:
-        player_stats = {}
-        for line in f:
-            if line.strip():
-                user, g, w, l = line.strip().split(',') 
-                if user not in player_stats:
-                    player_stats[user] = {"w": 0, "l": 0}
-                player_stats[user]["w"] += int(w)
-                player_stats[user]["l"] += int(l)
-    top_players = sorted(player_stats.items(), key=lambda x: x[1]["w"], reverse=True)[:3]
-    players = [p[0] for p in top_players]
-    wins = [p[1]["w"] for p in top_players]
     
     plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
     plt.title("Game Popularity")
@@ -173,20 +160,11 @@ def refresh_plots():
     plt.savefig("game_popularity.png")
     plt.close()
 
-    with open("history.csv", "r") as f:
-        for line in f:
-            if line.strip():
-                user, g, w, l = line.strip().split(',')
-                if g == "tictactoe":
-                    ttt += int(w) + int(l)
-                elif g == "othello":
-                    othello += int(w) + int(l)
-                elif g == "connect4":
-                    c4 += int(w) + int(l)
+
 
     games = ["Tic Tac Toe", "Othello", "Connect 4"]
     plays = [ttt, othello, c4]
-        
+    
     plt.bar(players, wins, color=['green', 'blue', 'red'])
     plt.title("Top Players by Total Wins")
     plt.xlabel("Players")
@@ -208,6 +186,11 @@ def refresh_plots():
 # ==========================
 
 def main_hub(player1,player2):
+
+    results = [] 
+    league_winner = None
+    final_score = ""
+    winner_avatar = None
     global popularity_pie, overall_bar
     run = True
 
@@ -246,7 +229,8 @@ def main_hub(player1,player2):
     btn_tictactoe = pygame.Rect(WIDTH//2 - 200, 300, 400, 60)
     btn_othello = pygame.Rect(WIDTH//2 - 200, 400, 400, 60)
     btn_connect4 = pygame.Rect(WIDTH//2 - 200, 500, 400, 60)
-    btn_back = pygame.Rect(WIDTH//2 - 200, 650, 400, 60)
+    btn_league = pygame.Rect(WIDTH//2 - 200, 585, 400, 90)
+    btn_back = pygame.Rect(WIDTH//2 - 200, 700, 400, 60)
     
     # --- VARIBLES FOR CHARACTERS ---
     buttons_left,buttons_right = True,True  # TRUE WHEN LEFT/RIGHT DROP DOWN MENU IS OPEN
@@ -455,6 +439,9 @@ def main_hub(player1,player2):
             hover_c4 = btn_connect4.collidepoint((mx,my))
             menu_button(screen,btn_connect4, "Connect 4",hover_c4)
 
+            hover_league = btn_league.collidepoint((mx,my))
+            menu_button(screen, btn_league, "START LEAGUE", hover_league)
+
             hover_back = btn_back.collidepoint((mx,my))
             menu_button(screen,btn_back, "Back",hover_back)
 
@@ -470,7 +457,7 @@ def main_hub(player1,player2):
                     # --- TIC TAC TOE ---
                     if hover_ttt:
                         import tictactoe
-                        res = tictactoe.main(screen, player1, player2,avatar_left,avatar_right)
+                        res = tictactoe.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update tictactoe "{player1}" "{player2}" true')
                         elif res:
@@ -481,7 +468,7 @@ def main_hub(player1,player2):
                     # --- OTHELLO ---
                     elif hover_o: 
                         import othello
-                        res = othello.main(screen, player1, player2,avatar_left,avatar_right)
+                        res = othello.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update othello "{player1}" "{player2}" true')
                         elif res:
@@ -492,7 +479,7 @@ def main_hub(player1,player2):
                     # --- CONNECT 4 ---
                     elif hover_c4:
                         import connect4
-                        res = connect4.main(screen, player1, player2,avatar_left,avatar_right)
+                        res = connect4.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
                         if res == "draw":
                             os.system(f'bash leaderboard.sh update connect4 "{player1}" "{player2}" true')
                         elif res:
@@ -500,11 +487,12 @@ def main_hub(player1,player2):
                             os.system(f'bash leaderboard.sh update connect4 "{res}" "{loser}" false')
                             refresh_plots()
 
-                    elif hover_back:
-                        current_state = "START_SCREEN"
+                    elif hover_league:
+                        current_state = "LEAGUE"
+                        is_league = True
 
                     elif hover_back:
-                        current_state="START_SCREEN"
+                        current_state = "START_SCREEN"
 
     # ====================================
     #        2ND PAGE: STATISTICS
@@ -537,7 +525,7 @@ def main_hub(player1,player2):
 
     # ====================================
     #        2ND PAGE: LEADERBOARD
-    # ====================================                       
+    # ====================================
 
 
         elif current_state=="LEADERBOARD":
@@ -640,7 +628,76 @@ def main_hub(player1,player2):
                         terminal_message = "Leaderboard displayed on terminal!"
                         terminal_message_timer = pygame.time.get_ticks()
 
+        # ====================================
+        #            LEAGUE PAGE
+        # ====================================
+        elif current_state == "LEAGUE":
+            screen.blit(league_bg, (0, 0))
+            text_with_shadow(screen, "LEAGUE", title_font, WIDTH//2, 80, WHITE)
 
+            btn_start_league = pygame.Rect(WIDTH//2 - 200, 550, 400, 110)
+            hover_start_league = btn_start_league.collidepoint((mx, my))
+            menu_button(screen, btn_start_league, "START", hover_start_league)
+
+            btn_stat_back = pygame.Rect(WIDTH//2 - 200, 700, 400, 60)
+            hover_stat_back = btn_stat_back.collidepoint((mx, my))
+            menu_button(screen, btn_stat_back, "Back", hover_stat_back)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if hover_stat_back:
+                        current_state = "START_SCREEN"
+                    elif hover_start_league:
+                        import league
+                        # Store result in 'league_results'
+                        league_results = league.start_league(screen, player1, player2, avatar_left, avatar_right)
+
+                        # --- CALCULATE LEAGUE WINNER ---
+                        p1_wins = league_results.count(player1)
+                        p2_wins = league_results.count(player2)
+                        
+                        if p1_wins > p2_wins:
+                            league_winner = player1
+                        elif p2_wins > p1_wins:
+                            league_winner = player2
+                        else:
+                            league_winner = "Draw"
+                            
+                        final_score = f"{p1_wins} - {p2_wins}"
+                        
+                        # Update plots in background
+                        refresh_plots()
+                        
+                        current_state = "LEAGUE_CHAMPION_SCREEN"
+
+        # ====================================
+        #       LEAGUE CHAMPION SCREEN
+        # ====================================
+        elif current_state == "LEAGUE_CHAMPION_SCREEN":
+            screen.blit(stat_bg, (0, 0)) 
+            
+            text_with_shadow(screen, "LEAGUE RESULTS", title_font, WIDTH//2, 80, WHITE)
+            text_with_shadow(screen, f"FINAL SCORE: {final_score}", button_font, WIDTH//2, 180, YELLOW)
+
+            if league_winner == "Draw":
+                text_with_shadow(screen, "IT'S A TIE!", title_font, WIDTH//2, HEIGHT//2, WHITE)
+            else:
+                text_with_shadow(screen, f"{league_winner} IS THE", title_font, WIDTH//2, 300, BLACK)
+                text_with_shadow(screen, "LEAGUE CHAMPION!", title_font, WIDTH//2, 400, BLACK)
+
+            btn_finish = pygame.Rect(WIDTH//2 - 150, 700, 300, 60)
+            h_finish = btn_finish.collidepoint(pygame.mouse.get_pos())
+            menu_button(screen, btn_finish, "BACK TO HUB", h_finish)
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN and h_finish:
+                    current_state = "START_SCREEN"
+
+    
         pygame.display.update()
 
 

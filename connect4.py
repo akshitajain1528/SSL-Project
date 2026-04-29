@@ -72,7 +72,7 @@ class Connect4(Game):
 
 
 # --- MAIN FUNCTION ---
-def main(screen,player1,player2,avatar_left,avatar_right):
+def main(screen,player1,player2,avatar_left,avatar_right,is_league=False):
 
 
     my_game = Connect4()
@@ -98,7 +98,7 @@ def main(screen,player1,player2,avatar_left,avatar_right):
         mx,my = pygame.mouse.get_pos()
 
         anim_state = (is_anim,anim_col,anim_y,anim_player)
-        connect4_frame(screen,my_game,player1,player2,avatar_left,avatar_right,C4_GAME_BG,anim_state,win_data)
+        connect4_frame(screen,my_game,player1,player2,avatar_left,avatar_right,C4_GAME_BG,anim_state,win_data,is_league)
 
         # --- BACK BUTTON ---
         h_back = back_button.collidepoint((mx, my))
@@ -116,7 +116,13 @@ def main(screen,player1,player2,avatar_left,avatar_right):
             menu_button(screen, resume_button, "BACK TO GAME", resume, small_font)
 
 
-        pygame.display.update()
+        # pygame.display.update(
+
+        if my_game.game_over and is_league:
+            btn_text = "SHOW RESULTS" if "othello" in sys.modules[__name__].__file__ else "NEXT GAME"
+            btn_rect = pygame.Rect(WIDTH//2 - 150, HEIGHT - 100, 300, 50)
+            hover = btn_rect.collidepoint(pygame.mouse.get_pos())
+            menu_button(screen, btn_rect, btn_text, hover, small_font)
 
         # --- EVENTS : CONNECT4 ---
         for event in pygame.event.get():
@@ -124,10 +130,15 @@ def main(screen,player1,player2,avatar_left,avatar_right):
                 pygame.quit()
                 sys.exit()
 
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYDOWN and not my_game.game_over:
                 if event.key == pygame.K_ESCAPE:
                     is_paused = True
                     # return win_data[0]
+
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if my_game.game_over and is_league and hover:
+                    return win_data[0]
 
             
             if event.type == pygame.MOUSEBUTTONDOWN and is_paused:
@@ -179,11 +190,9 @@ def main(screen,player1,player2,avatar_left,avatar_right):
                 elif my_game.check_win() == 0:
                     my_game.game_over = True
                     win_data = ("Tie",YELLOW,None)
-            
-        if my_game.game_over:
-            return win_data[0]
 
-        my_game.switch_turns()
+                if not my_game.game_over:
+                    my_game.switch_turns()
 
         pygame.display.update()
 
