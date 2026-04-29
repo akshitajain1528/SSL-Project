@@ -112,7 +112,10 @@ def update_history(game_id, winner, loser, is_draw=False):
 #       PIE CHART  
 # ==========================
 
-
+graphs_folder = os.path.join(os.path.dirname(BASE_DIR), 'Graphs')
+GAME_POPULARITY = os.path.join(graphs_folder, 'game_popularity.png')
+TOP_PLAYERS = os.path.join(graphs_folder, 'top_players.png')
+TOP_PLAYERS_OVERALL = os.path.join(graphs_folder,'top_players_overall.png')
     
 ttt=0
 othello=0
@@ -156,7 +159,7 @@ def refresh_plots():
     
     plt.pie(plays, labels=games, autopct='%1.1f%%', startangle=140)
     plt.title("Game Popularity")
-    plt.savefig("Graphs/game_popularity.png")
+    plt.savefig(GAME_POPULARITY)
 
     plt.close()
 
@@ -169,13 +172,13 @@ def refresh_plots():
     plt.title("Top Players by Total Wins")
     plt.xlabel("Players")
     plt.ylabel("Wins")
-    plt.savefig("Graphs/top_players_overall.png")
+    plt.savefig(TOP_PLAYERS_OVERALL)
 
-    plt.savefig("Graphs/top_players.png")
+    plt.savefig(TOP_PLAYERS)
     plt.close()
 
-    popularity_pie = pygame.image.load("Graphs/game_popularity.png").convert_alpha()
-    overall_bar = pygame.image.load("Graphs/top_players.png").convert_alpha()
+    popularity_pie = pygame.image.load(GAME_POPULARITY).convert_alpha()
+    overall_bar = pygame.image.load(TOP_PLAYERS).convert_alpha()
 
     popularity_pie = pygame.transform.scale(popularity_pie, (500, 400))
     overall_bar = pygame.transform.scale(overall_bar, (500, 400))
@@ -267,12 +270,7 @@ def main_hub(player1,player2):
             draw_chr_panels(screen, mx, my, buttons_left, buttons_right, left_panel_data, right_panel_data)
             draw_selected_characters(screen, avatar_left, avatar_right, mx, my, small_font)
 
-        # --- WARNING POPUP ---
-            if show_avatar_warning:
-                warning_box = pygame.Rect(WIDTH//2 - 450, HEIGHT - 100, 900, 50)
-                pygame.draw.rect(screen, (200, 0, 0), warning_box, border_radius=2)
-                pygame.draw.rect(screen, WHITE, warning_box, 3, border_radius=2)
-                text_with_shadow(screen, "PLEASE SELECT BOTH AVATARS FIRST!", button_font, WIDTH//2, HEIGHT - 75, WHITE)
+
 
 
             # --- WELCOME TO GAMECRAFT ---
@@ -296,6 +294,13 @@ def main_hub(player1,player2):
 
             h_quit = btn_start_quit.collidepoint((mx,my))
             menu_button(screen,btn_start_quit,"QUIT",h_quit)
+
+            # --- WARNING POPUP ---
+            if show_avatar_warning:
+                warning_box = pygame.Rect(WIDTH//2 - 450, HEIGHT - 100, 900, 50)
+                pygame.draw.rect(screen, (200, 0, 0), warning_box, border_radius=2)
+                pygame.draw.rect(screen, WHITE, warning_box, 3, border_radius=2)
+                text_with_shadow(screen, "PLEASE SELECT BOTH AVATARS FIRST!", button_font, WIDTH//2, HEIGHT - 75, WHITE)
 
 
             for event in pygame.event.get():
@@ -456,36 +461,17 @@ def main_hub(player1,player2):
                     
                     # --- TIC TAC TOE ---
                     if hover_ttt:
-                        from Games import tictactoe
-                        res = tictactoe.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
-                        if res == "draw":
-                            os.system(f'bash leaderboard.sh update tictactoe "{player1}" "{player2}" true')
-                        elif res:
-                            loser = player2 if res == player1 else player1
-                            os.system(f'bash leaderboard.sh update tictactoe "{res}" "{loser}" false')
-                            refresh_plots()
+                        current_state="TICTACTOE"
 
                     # --- OTHELLO ---
                     elif hover_o: 
-                        from Games import othello
-                        res = othello.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
-                        if res == "draw":
-                            os.system(f'bash leaderboard.sh update othello "{player1}" "{player2}" true')
-                        elif res:
-                            loser = player2 if res == player1 else player1
-                            os.system(f'bash leaderboard.sh update othello "{res}" "{loser}" false')
-                            refresh_plots()
+                        current_state="OTHELLO"
+                        
 
                     # --- CONNECT 4 ---
                     elif hover_c4:
-                        from Games import connect4
-                        res = connect4.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
-                        if res == "draw":
-                            os.system(f'bash leaderboard.sh update connect4 "{player1}" "{player2}" true')
-                        elif res:
-                            loser = player2 if res == player1 else player1
-                            os.system(f'bash leaderboard.sh update connect4 "{res}" "{loser}" false')
-                            refresh_plots()
+                        current_state="CONNECT4"
+                        
 
                     elif hover_league:
                         current_state = "LEAGUE"
@@ -493,6 +479,83 @@ def main_hub(player1,player2):
 
                     elif hover_back:
                         current_state = "START_SCREEN"
+
+    # ==================================
+    #             CONNECT 4
+    # ==================================
+
+        elif current_state=="CONNECT4":
+            from Games import connect4
+            res = connect4.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
+
+            if res == "draw":
+                os.system(f'bash leaderboard.sh update connect4 "{player1}" "{player2}" true')
+
+            elif res == "GO_TO_LEADERBOARD":
+                current_state="LEADERBOARD"
+
+            elif res == "STARTAGAIN":
+                current_state="CONNECT4"
+            
+            elif res == "GAME_MENU":
+                current_state="GAME_MENU"
+
+            elif res:
+                loser = player2 if res == player1 else player1
+                os.system(f'bash leaderboard.sh update connect4 "{res}" "{loser}" false')
+                refresh_plots()
+        
+    # =====================================
+    #               OTHELLO
+    # =====================================    
+
+        elif current_state=="OTHELLO":
+            from Games import othello
+            res = othello.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
+
+            if res == "draw":
+                os.system(f'bash leaderboard.sh update othello "{player1}" "{player2}" true')
+
+            elif res == "GO_TO_LEADERBOARD":
+                current_state="LEADERBOARD"
+
+            elif res == "STARTAGAIN":
+                current_state="OTHELLO"
+
+            elif res == "GAME_MENU":
+                current_state="GAME_MENU"
+                
+            elif res:
+                loser = player2 if res == player1 else player1
+                os.system(f'bash leaderboard.sh update othello "{res}" "{loser}" false')
+                refresh_plots()
+
+
+    # =====================================
+    #               TIC TAC TOE
+    # =====================================
+
+        elif current_state=="TICTACTOE":
+            from Games import tictactoe
+            res = tictactoe.main(screen, player1, player2,avatar_left,avatar_right,is_league=False)
+
+            if res == "draw":
+                os.system(f'bash leaderboard.sh update tictactoe "{player1}" "{player2}" true')
+
+            elif res == "GO_TO_LEADERBOARD":
+                current_state="LEADERBOARD"
+
+            elif res == "STARTAGAIN":
+                current_state="TICTACTOE"
+
+            elif res == "GAME_MENU":
+                current_state="GAME_MENU"
+
+            elif res:
+                loser = player2 if res == player1 else player1
+                os.system(f'bash leaderboard.sh update tictactoe "{res}" "{loser}" false')
+                refresh_plots()
+
 
     # ====================================
     #        2ND PAGE: STATISTICS
